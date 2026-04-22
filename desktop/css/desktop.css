@@ -66,8 +66,18 @@ p { margin: 0 0 1em; }
 }
 .btn:hover { background: var(--brand-dark); text-decoration: none; color: #fff; }
 .btn:active { transform: translateY(1px); }
-.btn-outline { background: transparent; color: var(--brand); border: 1px solid var(--brand); }
-.btn-outline:hover { background: var(--brand); color: #fff; }
+.btn-outline {
+  background: #fff;
+  color: var(--brand);
+  border: 1px solid var(--brand);
+  transition: background .2s ease, color .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+.btn-outline:hover {
+  background: var(--brand-light);
+  color: var(--brand-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15,122,74,0.25);
+}
 .btn-accent { background: var(--accent); border-color: var(--accent); }
 .btn-accent:hover { background: #b88914; border-color: #b88914; }
 .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
