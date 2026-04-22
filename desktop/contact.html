@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact — HIJIR Travel & Tours</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/desktop.css">
+</head>
+<body>
+  <header class="topnav">
+    <div class="container">
+      <a href="index.html" class="brand">
+        <span class="img-placeholder" style="width:36px;height:36px;aspect-ratio:auto;border-radius:4px;font-size:0.7rem">LOGO</span>
+        HIJIR TRAVEL &amp; TOURS
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="packages.html">Packages</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html" class="active">Contact</a>
+        <a href="#" id="loginBtn" class="btn btn-outline" style="color:var(--brand);border-color:var(--brand)">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <div class="text-center mb-3">
+        <h1>Contact Us</h1>
+        <p class="muted">Get in touch — we reply within one working day.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <p><span class="label">Address</span><span id="addr"></span></p>
+          <p><span class="label">Phone</span><span id="phone"></span></p>
+          <p><span class="label">Email</span><span id="email"></span></p>
+          <div class="img-placeholder" style="height:220px;aspect-ratio:auto;margin-top:16px">Map</div>
+        </div>
+        <div>
+          <form id="contactForm">
+            <div class="form-group">
+              <label for="cName">Name</label>
+              <input type="text" id="cName" required>
+            </div>
+            <div class="form-group">
+              <label for="cEmail">Email</label>
+              <input type="email" id="cEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="cPhone">Phone</label>
+              <input type="tel" id="cPhone">
+            </div>
+            <div class="form-group">
+              <label for="cMsg">Message</label>
+              <textarea id="cMsg" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-block btn-lg">Send Message</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast">Message sent! We will reply within one working day.</div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>
+        <h4 id="footCompany">HIJIR TRAVEL &amp; TOURS SDN. BHD.</h4>
+        <p id="footAddress"></p>
+        <p id="footPhone"></p>
+      </div>
+      <div class="copyright">© 2026 HIJIR Travel &amp; Tours Sdn. Bhd. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { COMPANY } from "../shared/data.js";
+    import { isLoggedIn } from "../shared/auth.js";
+
+    document.getElementById("addr").textContent = COMPANY.address.join(" ");
+    document.getElementById("phone").textContent = COMPANY.phone;
+    document.getElementById("email").textContent = COMPANY.email;
+    document.getElementById("footCompany").textContent = COMPANY.name;
+    document.getElementById("footAddress").textContent = COMPANY.address.join(" ");
+    document.getElementById("footPhone").textContent = "Phone: " + COMPANY.phone;
+
+    // Pre-fill message if ?package= query present
+    const pkg = new URLSearchParams(location.search).get("package");
+    if (pkg) document.getElementById("cMsg").value = `Hi, I am interested in the "${pkg}" package. Please share more details. Thank you.`;
+
+    document.getElementById("contactForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const toast = document.getElementById("toast");
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 2500);
+      e.target.reset();
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", e => {
+      e.preventDefault();
+      location.href = isLoggedIn() ? "admin/dashboard.html" : "index.html#login";
+    });
+  </script>
+</body>
+</html>

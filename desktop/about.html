@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About — HIJIR Travel & Tours</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/desktop.css">
+</head>
+<body>
+  <header class="topnav">
+    <div class="container">
+      <a href="index.html" class="brand">
+        <span class="img-placeholder" style="width:36px;height:36px;aspect-ratio:auto;border-radius:4px;font-size:0.7rem">LOGO</span>
+        HIJIR TRAVEL &amp; TOURS
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html" class="active">About</a>
+        <a href="packages.html">Packages</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html">Contact</a>
+        <a href="#" id="loginBtn" class="btn btn-outline" style="color:var(--brand);border-color:var(--brand)">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <div class="text-center mb-3">
+        <h1>About HIJIR</h1>
+        <p class="muted">Guiding pilgrims to the Holy Land with care and faith.</p>
+      </div>
+      <div class="grid grid-2" style="align-items:center;gap:48px">
+        <div class="img-placeholder" style="height:360px;aspect-ratio:auto">Company photo / team</div>
+        <div>
+          <h2 id="companyName">HIJIR TRAVEL &amp; TOURS SDN. BHD.</h2>
+          <p class="muted small" id="companyReg">Reg: 202401044176 (1590022-X)</p>
+          <p>We are a licensed Umrah and Haji operator based in Kota Bharu, Kelantan. Since 2024, we have been entrusted by Malaysian families to prepare every detail of their sacred journeys — from flights and visas to hotels and ground handling.</p>
+          <p>Our small team of mutawwif and tour leaders have served hundreds of pilgrims. We believe every journey begins with trust, and every return home begins with a story worth keeping.</p>
+          <p>Our packages cover Umrah, Haji, Ziarah, and custom group travel to Madinah, Mecca, Taif, Istanbul, and beyond.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="background:var(--bg-soft)">
+    <div class="container">
+      <div class="grid grid-3">
+        <div class="feature">
+          <div class="icon">🎯</div>
+          <h3>Our Mission</h3>
+          <p>To ease every pilgrim's path to the Holy Land — with transparent pricing, reliable logistics, and spiritual guidance.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">👁</div>
+          <h3>Our Vision</h3>
+          <p>To become Kelantan's most trusted Umrah operator, known for warmth, honesty, and care at every step.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">💎</div>
+          <h3>Our Values</h3>
+          <p>Amanah (trust), Ihsan (excellence), and Ukhuwwah (brotherhood) in everything we do.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>
+        <h4 id="footCompany">HIJIR TRAVEL &amp; TOURS SDN. BHD.</h4>
+        <p id="footAddress"></p>
+        <p id="footPhone"></p>
+      </div>
+      <div class="copyright">© 2026 HIJIR Travel &amp; Tours Sdn. Bhd. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { COMPANY } from "../shared/data.js";
+    import { isLoggedIn } from "../shared/auth.js";
+    document.getElementById("companyName").textContent = COMPANY.name;
+    document.getElementById("companyReg").textContent = "Reg: " + COMPANY.regNo;
+    document.getElementById("footCompany").textContent = COMPANY.name;
+    document.getElementById("footAddress").textContent = COMPANY.address.join(" ");
+    document.getElementById("footPhone").textContent = "Phone: " + COMPANY.phone;
+    document.getElementById("loginBtn").addEventListener("click", e => {
+      e.preventDefault();
+      location.href = isLoggedIn() ? "admin/dashboard.html" : "index.html#login";
+    });
+  </script>
+</body>
+</html>

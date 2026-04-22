@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gallery — HIJIR Travel & Tours</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/desktop.css">
+</head>
+<body>
+  <header class="topnav">
+    <div class="container">
+      <a href="index.html" class="brand">
+        <span class="img-placeholder" style="width:36px;height:36px;aspect-ratio:auto;border-radius:4px;font-size:0.7rem">LOGO</span>
+        HIJIR TRAVEL &amp; TOURS
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="packages.html">Packages</a>
+        <a href="gallery.html" class="active">Gallery</a>
+        <a href="contact.html">Contact</a>
+        <a href="#" id="loginBtn" class="btn btn-outline" style="color:var(--brand);border-color:var(--brand)">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <div class="text-center mb-3">
+        <h1>Gallery</h1>
+        <p class="muted">Moments from our past tours and pilgrimages.</p>
+      </div>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+  </section>
+
+  <div class="lightbox" id="lightbox">
+    <button class="close">✕</button>
+    <div class="img-placeholder" id="lightboxImg" style="width:70vw;height:70vh;aspect-ratio:auto;font-size:1.3rem"></div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>
+        <h4 id="footCompany">HIJIR TRAVEL &amp; TOURS SDN. BHD.</h4>
+        <p id="footAddress"></p>
+        <p id="footPhone"></p>
+      </div>
+      <div class="copyright">© 2026 HIJIR Travel &amp; Tours Sdn. Bhd. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { COMPANY, GALLERY } from "../shared/data.js";
+    import { isLoggedIn } from "../shared/auth.js";
+    document.getElementById("footCompany").textContent = COMPANY.name;
+    document.getElementById("footAddress").textContent = COMPANY.address.join(" ");
+    document.getElementById("footPhone").textContent = "Phone: " + COMPANY.phone;
+
+    const grid = document.getElementById("galleryGrid");
+    const lb = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lightboxImg");
+
+    grid.innerHTML = GALLERY.map((g, i) => `
+      <div class="img-placeholder" data-i="${i}" style="cursor:pointer">${esc(g.caption)}</div>
+    `).join("");
+
+    grid.addEventListener("click", e => {
+      const i = e.target.dataset.i;
+      if (i == null) return;
+      lbImg.textContent = GALLERY[Number(i)].caption;
+      lb.classList.add("open");
+    });
+    lb.addEventListener("click", e => {
+      if (e.target === lb || e.target.matches(".close")) lb.classList.remove("open");
+    });
+
+    document.getElementById("loginBtn").addEventListener("click", e => {
+      e.preventDefault();
+      location.href = isLoggedIn() ? "admin/dashboard.html" : "index.html#login";
+    });
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  </script>
+</body>
+</html>

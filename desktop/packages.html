@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Packages — HIJIR Travel & Tours</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/desktop.css">
+</head>
+<body>
+  <header class="topnav">
+    <div class="container">
+      <a href="index.html" class="brand">
+        <span class="img-placeholder" style="width:36px;height:36px;aspect-ratio:auto;border-radius:4px;font-size:0.7rem">LOGO</span>
+        HIJIR TRAVEL &amp; TOURS
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="packages.html" class="active">Packages</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html">Contact</a>
+        <a href="#" id="loginBtn" class="btn btn-outline" style="color:var(--brand);border-color:var(--brand)">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="container">
+      <div class="text-center mb-3">
+        <h1>Our Packages</h1>
+        <p class="muted">Find the right journey for your family.</p>
+      </div>
+      <div class="chips" id="filterChips">
+        <button class="chip active" data-cat="All">All</button>
+        <button class="chip" data-cat="Umrah">Umrah</button>
+        <button class="chip" data-cat="Haji">Haji</button>
+        <button class="chip" data-cat="Ziarah">Ziarah</button>
+        <button class="chip" data-cat="Add-on">Add-ons</button>
+      </div>
+      <div class="grid grid-3" id="pkgGrid"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>
+        <h4 id="footCompany">HIJIR TRAVEL &amp; TOURS SDN. BHD.</h4>
+        <p id="footAddress"></p>
+        <p id="footPhone"></p>
+      </div>
+      <div class="copyright">© 2026 HIJIR Travel &amp; Tours Sdn. Bhd. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { COMPANY, PACKAGES } from "../shared/data.js";
+    import { isLoggedIn } from "../shared/auth.js";
+
+    document.getElementById("footCompany").textContent = COMPANY.name;
+    document.getElementById("footAddress").textContent = COMPANY.address.join(" ");
+    document.getElementById("footPhone").textContent = "Phone: " + COMPANY.phone;
+
+    const grid = document.getElementById("pkgGrid");
+    const chips = document.querySelectorAll("#filterChips .chip");
+    let activeCat = "All";
+
+    function render() {
+      const list = activeCat === "All" ? PACKAGES : PACKAGES.filter(p => p.category === activeCat);
+      grid.innerHTML = list.map(p => `
+        <div class="pkg-card">
+          <div class="pkg-img img-placeholder">${esc(p.name)}</div>
+          <div class="pkg-body">
+            <h3>${esc(p.name)}</h3>
+            <div class="pkg-cat">${esc(p.category)}</div>
+            <p class="pkg-desc">${esc(p.description)}</p>
+            <div class="pkg-price">RM ${p.price.toLocaleString("en-MY", {minimumFractionDigits: 2})} ${p.category==="Add-on" ? "" : "<small>/ pax</small>"}</div>
+            <a href="contact.html?package=${encodeURIComponent(p.name)}" class="btn btn-block">Inquire Now</a>
+          </div>
+        </div>
+      `).join("") || `<p class="muted" style="grid-column:1/-1;text-align:center">No packages in this category yet.</p>`;
+    }
+    chips.forEach(c => c.addEventListener("click", () => {
+      chips.forEach(x => x.classList.remove("active"));
+      c.classList.add("active");
+      activeCat = c.dataset.cat;
+      render();
+    }));
+    render();
+
+    document.getElementById("loginBtn").addEventListener("click", e => {
+      e.preventDefault();
+      location.href = isLoggedIn() ? "admin/dashboard.html" : "index.html#login";
+    });
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  </script>
+</body>
+</html>
