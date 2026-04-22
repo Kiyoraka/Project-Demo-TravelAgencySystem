@@ -3,3 +3,6 @@
 # List of ignore files
 *.exe
 *.txt
+
+# Alice work plan (local reference, not tracked)
+Project Resources/
