@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HIJIR Travel & Tours</title>
+  <script>
+    (function () {
+      var isMobile = window.matchMedia("(max-width: 767px)").matches;
+      var target = isMobile ? "mobile/index.html" : "desktop/index.html";
+      location.replace(target + location.hash + location.search);
+    })();
+  </script>
+</head>
+<body>
+  <noscript>
+    <p>This site requires JavaScript. Please go to
+      <a href="desktop/index.html">desktop site</a> or
+      <a href="mobile/index.html">mobile site</a>.
+    </p>
+  </noscript>
+</body>
+</html>
