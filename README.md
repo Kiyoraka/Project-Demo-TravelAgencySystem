@@ -6,18 +6,23 @@ Vanilla HTML/CSS/JS sales demo for a Malaysian travel agency. Showcases a public
 
 ## Quick Start
 
-```bash
-# Any static server works. From the project root:
-python -m http.server 8000
-# or:  npx serve .
+This is a pure static site — pure HTML, CSS, and JavaScript, no runtime. You only need **any static HTTP server** to view it locally (because `<script type="module">` imports don't work from `file://` — browser CORS rule).
 
-# Then open in a browser:
-http://localhost:8000
-```
+Pick whichever static server you already have on hand:
+
+- **VS Code Live Server** extension — right-click `index.html` → *Open with Live Server*
+- **Node**: `npx serve .`
+- **PHP**: `php -S localhost:8000`
+- **Python** (if already installed): `python -m http.server 8000`
+- **Deploy** to GitHub Pages / Netlify / Hostinger / any shared hosting — drag-drop the folder, done
+
+Then open `http://localhost:<port>` (or your deployed URL).
 
 The entry page (`index.html`) auto-redirects based on viewport width:
 - `< 768px` → `mobile/index.html`
 - `≥ 768px` → `desktop/index.html`
+
+**The project itself has zero runtime dependencies.** No Python, no Node, no PHP — just a static file host.
 
 ## Demo Login
 
