@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Receipt — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h2>Create Receipt</h2>
+    <div class="card">
+      <div class="form-group"><label>Receipt No.</label><input type="text" id="rNo" readonly></div>
+      <div class="form-group"><label>Date</label><input type="date" id="date"></div>
+      <div class="form-group"><label>Client</label><select id="clientSel"></select></div>
+    </div>
+    <div class="flex-between mt-2"><h3>Products</h3><button class="btn btn-sm" id="addRow">+ Row</button></div>
+    <div id="rows"></div>
+
+    <div class="summary-m">
+      <div class="line"><span>Subtotal</span><span id="sSub">0.00</span></div>
+      <div class="line"><span>Deposit (RM)</span><input type="number" step="0.01" id="deposit" value="0" style="width:100px;text-align:right;padding:4px 6px;border:1px solid var(--border);border-radius:6px"></div>
+      <div class="line grand"><span>Jumlah Baki</span><span id="sBaki">0.00</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Payment</h3>
+      <div class="flex flex-gap" style="flex-wrap:wrap">
+        <label><input type="radio" name="pay" value="TUNAI" checked> Tunai</label>
+        <label><input type="radio" name="pay" value="ONLINE"> Online</label>
+        <label><input type="radio" name="pay" value="CEK"> Cek</label>
+      </div>
+      <label class="mt-2" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="paidStamp"> Show PAID stamp</label>
+    </div>
+
+    <button class="btn btn-block btn-lg mt-2" id="genPdf">Generate PDF</button>
+    <a href="clients.html" class="btn btn-ghost btn-block mt-1">← Back to Clients</a>
+  </div>
+
+  <div id="bottomnav"></div>
+
+  <script src="../../libs/jspdf.umd.min.js"></script>
+  <script src="../../libs/jspdf.plugin.autotable.min.js"></script>
+  <script type="module">
+    import { guard, getQueryParam } from "../../shared/router.js";
+    import { CLIENTS, findClient } from "../../shared/data.js";
+    import { renderAdminLayout } from "../js/layout.js";
+    import { buildReceipt } from "../../shared/pdf-generator.js";
+
+    if (guard()) {
+      renderAdminLayout("clients", "Receipt");
+      document.getElementById("rNo").value = "HIJIR" + new Date().toISOString().slice(5,10).replace(/-/g,"") + new Date().getFullYear().toString().slice(2);
+      document.getElementById("date").value = new Date().toISOString().slice(0,10);
+      const sel = document.getElementById("clientSel");
+      sel.innerHTML = CLIENTS.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+      const preId = getQueryParam("clientId"); if (preId && findClient(preId)) sel.value = preId;
+
+      const rowsEl = document.getElementById("rows");
+      let rows = [];
+      function jumlah(r) { return (+r.price||0)*(+r.qty||0); }
+      function fmt(n) { return (+n||0).toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+      function render() {
+        rowsEl.innerHTML = rows.map((r,i) => `
+          <div class="item-card-m">
+            <div class="row-head"><span>Item ${i+1}</span><button data-del="${i}" style="background:none;border:none;color:var(--danger);font-size:1.1rem">✕</button></div>
+            <div class="form-group"><label>Produk</label><input type="text" data-k="produk" data-i="${i}" value="${esc(r.produk)}"></div>
+            <div class="form-group"><label>Harga (RM)</label><input type="number" step="0.01" data-k="price" data-i="${i}" value="${r.price||""}"></div>
+            <div class="form-group"><label>Kuantiti</label><input type="number" data-k="qty" data-i="${i}" value="${r.qty||""}"></div>
+            <div class="muted small">Jumlah: RM ${fmt(jumlah(r))}</div>
+          </div>`).join("");
+        update();
+      }
+      function update() {
+        const sub = rows.reduce((s,r)=>s+jumlah(r),0);
+        const dep = parseFloat(deposit.value)||0;
+        const baki = Math.max(0, sub-dep);
+        sSub.textContent = fmt(sub); sBaki.textContent = fmt(baki);
+        if (sub > 0 && baki === 0) paidStamp.checked = true;
+        if (baki > 0) paidStamp.checked = false;
+      }
+      rowsEl.addEventListener("input", e => {
+        const i = +e.target.dataset.i, k = e.target.dataset.k;
+        if (isNaN(i) || !k) return;
+        rows[i][k] = e.target.type==="number" ? parseFloat(e.target.value)||0 : e.target.value;
+        render();
+      });
+      rowsEl.addEventListener("click", e => { const di = e.target.dataset.del; if (di != null) { rows.splice(+di,1); render(); } });
+      document.getElementById("addRow").addEventListener("click", () => { rows.push({produk:"",price:0,qty:1}); render(); });
+      deposit.addEventListener("input", update);
+      rows.push({produk:"",price:0,qty:1}); render();
+
+      document.getElementById("genPdf").addEventListener("click", () => {
+        const c = findClient(sel.value);
+        const sub = rows.reduce((s,r)=>s+jumlah(r),0);
+        const dep = parseFloat(deposit.value)||0;
+        const baki = Math.max(0, sub-dep);
+        buildReceipt({
+          receiptNo: document.getElementById("rNo").value,
+          date: fmtDate(document.getElementById("date").value),
+          client: c || {name:"",phone:""},
+          rows: rows.map(r => ({ produk: r.produk, price:+r.price||0, qty:+r.qty||0, jumlah: jumlah(r) })),
+          subtotal: sub, deposit: dep, balance: baki,
+          payment: document.querySelector("input[name=pay]:checked").value,
+          paid: paidStamp.checked
+        });
+      });
+      function fmtDate(iso) { if (!iso) return ""; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
+      function esc(s) { return String(s).replace(/"/g,"&quot;"); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quotation — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h2>Create Quotation</h2>
+    <div class="card">
+      <div class="form-group"><label>Quote No.</label><input type="text" id="quoteNo" readonly></div>
+      <div class="form-group"><label>Date</label><input type="date" id="date"></div>
+      <div class="form-group"><label>Attention To</label><select id="clientSel"></select></div>
+    </div>
+    <div class="flex-between mt-2"><h3>Travelers & Packages</h3><button class="btn btn-sm" id="addRow">+ Row</button></div>
+    <div id="rows"></div>
+
+    <div class="summary-m">
+      <div class="line"><span>Total</span><span id="sTotal">0.00</span></div>
+      <div class="line"><span>Discount</span><span id="sDisc">0.00</span></div>
+      <div class="line"><span>Additional</span><span id="sAdd">0.00</span></div>
+      <div class="line grand"><span>After Discount</span><span id="sFinal">0.00</span></div>
+    </div>
+
+    <button class="btn btn-block btn-lg mt-2" id="genPdf">Generate PDF</button>
+    <a href="clients.html" class="btn btn-ghost btn-block mt-1">← Back to Clients</a>
+  </div>
+
+  <div id="bottomnav"></div>
+
+  <script src="../../libs/jspdf.umd.min.js"></script>
+  <script src="../../libs/jspdf.plugin.autotable.min.js"></script>
+  <script type="module">
+    import { guard, getQueryParam } from "../../shared/router.js";
+    import { CLIENTS, PACKAGES, findClient } from "../../shared/data.js";
+    import { renderAdminLayout } from "../js/layout.js";
+    import { buildQuotation } from "../../shared/pdf-generator.js";
+
+    if (guard()) {
+      renderAdminLayout("clients", "Quotation");
+      document.getElementById("quoteNo").value = "LCS-" + Math.floor(1000 + Math.random()*9000);
+      document.getElementById("date").value = new Date().toISOString().slice(0,10);
+      const sel = document.getElementById("clientSel");
+      sel.innerHTML = CLIENTS.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+      const preId = getQueryParam("clientId"); if (preId && findClient(preId)) sel.value = preId;
+
+      const rowsEl = document.getElementById("rows");
+      const pkgOpts = `<option value="">--</option>` + PACKAGES.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+      let rows = [];
+      function total(r) { return (+r.price||0)+(+r.additional||0)-(+r.discount||0); }
+      function fmt(n) { return (+n||0).toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+      function render() {
+        rowsEl.innerHTML = rows.map((r, i) => `
+          <div class="item-card-m">
+            <div class="row-head"><span>Row ${i+1}</span><button class="row-del" style="background:none;border:none;color:var(--danger);font-size:1.1rem" data-del="${i}">✕</button></div>
+            <div class="form-group"><label>Name</label><input type="text" data-k="name" data-i="${i}" value="${esc(r.name)}"></div>
+            <div class="form-group"><label>Package</label><select data-k="pkgId" data-i="${i}">${pkgOpts}</select></div>
+            <div class="form-group"><label>Price (RM)</label><input type="number" step="0.01" data-k="price" data-i="${i}" value="${r.price||""}"></div>
+            <div class="form-group"><label>Additional (RM)</label><input type="number" step="0.01" data-k="additional" data-i="${i}" value="${r.additional||""}"></div>
+            <div class="form-group"><label>Discount (RM)</label><input type="number" step="0.01" data-k="discount" data-i="${i}" value="${r.discount||""}"></div>
+            <div class="muted small">Row Total: RM ${fmt(total(r))}</div>
+          </div>`).join("");
+        rows.forEach((r, i) => { const s = rowsEl.querySelector(`select[data-i="${i}"]`); if (s) s.value = r.pkgId || ""; });
+        updateSum();
+      }
+      function updateSum() {
+        const t = rows.reduce((s,r)=>s+(+r.price||0),0);
+        const d = rows.reduce((s,r)=>s+(+r.discount||0),0);
+        const a = rows.reduce((s,r)=>s+(+r.additional||0),0);
+        sTotal.textContent = fmt(t); sDisc.textContent = fmt(d); sAdd.textContent = fmt(a); sFinal.textContent = fmt(t-d+a);
+      }
+      rowsEl.addEventListener("input", e => {
+        const i = +e.target.dataset.i, k = e.target.dataset.k;
+        if (isNaN(i) || !k) return;
+        rows[i][k] = e.target.type==="number" ? parseFloat(e.target.value)||0 : e.target.value;
+        if (k === "pkgId") { const p = PACKAGES.find(x => x.id === +e.target.value); if (p) { rows[i].price = p.price; render(); return; } }
+        render();
+      });
+      rowsEl.addEventListener("click", e => { const di = e.target.dataset.del; if (di != null) { rows.splice(+di,1); render(); } });
+      document.getElementById("addRow").addEventListener("click", () => { rows.push({name:"",pkgId:"",price:0,additional:0,discount:0}); render(); });
+      rows.push({name:"",pkgId:"",price:0,additional:0,discount:0}); render();
+
+      document.getElementById("genPdf").addEventListener("click", () => {
+        const c = findClient(sel.value);
+        const t = rows.reduce((s,r)=>s+(+r.price||0),0);
+        const d = rows.reduce((s,r)=>s+(+r.discount||0),0);
+        const a = rows.reduce((s,r)=>s+(+r.additional||0),0);
+        buildQuotation({
+          quoteNo: document.getElementById("quoteNo").value,
+          date: fmtDate(document.getElementById("date").value),
+          attentionTo: c?.name || "",
+          rows: rows.map(r => ({ name: r.name, pkg: PACKAGES.find(p=>p.id===+r.pkgId)?.code || "", price:+r.price||0, additional:+r.additional||0, discount:+r.discount||0, total: total(r) })),
+          totals: { total: t, discount: d, additional: a, finalTotal: t-d+a }
+        });
+      });
+      function fmtDate(iso) { if (!iso) return ""; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
+      function esc(s) { return String(s).replace(/"/g,"&quot;"); }
+    }
+  </script>
+</body>
+</html>

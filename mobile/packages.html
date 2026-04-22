@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Packages — HIJIR</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h1 class="text-center">Our Packages</h1>
+    <p class="muted small text-center">Find the right journey for your family.</p>
+    <div class="chips-m" id="chips">
+      <button class="chip active" data-cat="All">All</button>
+      <button class="chip" data-cat="Umrah">Umrah</button>
+      <button class="chip" data-cat="Haji">Haji</button>
+      <button class="chip" data-cat="Ziarah">Ziarah</button>
+      <button class="chip" data-cat="Add-on">Add-ons</button>
+    </div>
+    <div class="card-stack" id="list"></div>
+  </div>
+  <div id="bottomnav"></div>
+  <script type="module">
+    import { PACKAGES } from "../shared/data.js";
+    import { renderPublicLayout } from "./js/layout.js";
+    renderPublicLayout("packages");
+    const list = document.getElementById("list");
+    let cat = "All";
+    function render() {
+      const rows = cat === "All" ? PACKAGES : PACKAGES.filter(p => p.category === cat);
+      list.innerHTML = rows.map(p => `
+        <div class="pkg-card-m">
+          <div class="pkg-img">${esc(p.name)}</div>
+          <div class="pkg-body">
+            <div class="pkg-cat">${esc(p.category)}</div>
+            <h3>${esc(p.name)}</h3>
+            <p class="muted small">${esc(p.description)}</p>
+            <div class="pkg-price">RM ${p.price.toLocaleString("en-MY",{minimumFractionDigits:2})}</div>
+            <a href="contact.html?package=${encodeURIComponent(p.name)}" class="btn btn-block">Inquire Now</a>
+          </div>
+        </div>
+      `).join("") || `<p class="muted text-center">No packages in this category.</p>`;
+    }
+    document.querySelectorAll("#chips .chip").forEach(c => c.addEventListener("click", () => {
+      document.querySelectorAll("#chips .chip").forEach(x => x.classList.remove("active"));
+      c.classList.add("active"); cat = c.dataset.cat; render();
+    }));
+    render();
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  </script>
+</body>
+</html>

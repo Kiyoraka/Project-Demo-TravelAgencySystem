@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h2>Settings</h2>
+    <form id="form">
+      <details class="card mb-2" open>
+        <summary style="font-weight:600;cursor:pointer">Company Info</summary>
+        <div class="mt-2">
+          <div class="form-group"><label>Company Name</label><input type="text" id="sName"></div>
+          <div class="form-group"><label>Reg. No.</label><input type="text" id="sReg"></div>
+          <div class="form-group"><label>Address Line 1</label><input type="text" id="sA1"></div>
+          <div class="form-group"><label>Address Line 2</label><input type="text" id="sA2"></div>
+          <div class="form-group"><label>Address Line 3</label><input type="text" id="sA3"></div>
+          <div class="form-group"><label>Address Line 4</label><input type="text" id="sA4"></div>
+          <div class="form-group"><label>Phone</label><input type="text" id="sPhone"></div>
+          <div class="form-group"><label>Email</label><input type="email" id="sEmail"></div>
+        </div>
+      </details>
+      <details class="card mb-2">
+        <summary style="font-weight:600;cursor:pointer">Bank Details</summary>
+        <div class="mt-2">
+          <div class="form-group"><label>Bank Name</label><input type="text" id="sBank"></div>
+          <div class="form-group"><label>Account No.</label><input type="text" id="sAcc"></div>
+          <div class="form-group"><label>Account Name</label><input type="text" id="sAccName"></div>
+        </div>
+      </details>
+      <details class="card mb-2">
+        <summary style="font-weight:600;cursor:pointer">Landing Page</summary>
+        <div class="mt-2">
+          <div class="form-group"><label>Hero Title</label><input type="text" id="sHero"></div>
+          <div class="form-group"><label>Hero Subtitle</label><input type="text" id="sHeroSub"></div>
+        </div>
+      </details>
+      <button type="submit" class="btn btn-block btn-lg">Save Changes</button>
+    </form>
+  </div>
+  <div id="bottomnav"></div>
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { COMPANY } from "../../shared/data.js";
+    import { renderAdminLayout, showToast } from "../js/layout.js";
+    if (guard()) {
+      renderAdminLayout("settings", "Settings");
+      sName.value = COMPANY.name; sReg.value = COMPANY.regNo;
+      sA1.value = COMPANY.address[0]||""; sA2.value = COMPANY.address[1]||"";
+      sA3.value = COMPANY.address[2]||""; sA4.value = COMPANY.address[3]||"";
+      sPhone.value = COMPANY.phone; sEmail.value = COMPANY.email;
+      sBank.value = COMPANY.bank.name; sAcc.value = COMPANY.bank.accountNo; sAccName.value = COMPANY.bank.accountName;
+      sHero.value = COMPANY.landing.heroTitle; sHeroSub.value = COMPANY.landing.heroSubtitle;
+      document.getElementById("form").addEventListener("submit", e => {
+        e.preventDefault();
+        COMPANY.name = sName.value; COMPANY.regNo = sReg.value;
+        COMPANY.address = [sA1.value, sA2.value, sA3.value, sA4.value].filter(Boolean);
+        COMPANY.phone = sPhone.value; COMPANY.email = sEmail.value;
+        COMPANY.bank.name = sBank.value; COMPANY.bank.accountNo = sAcc.value; COMPANY.bank.accountName = sAccName.value;
+        COMPANY.landing.heroTitle = sHero.value; COMPANY.landing.heroSubtitle = sHeroSub.value;
+        showToast("Settings saved!");
+      });
+    }
+  </script>
+</body>
+</html>

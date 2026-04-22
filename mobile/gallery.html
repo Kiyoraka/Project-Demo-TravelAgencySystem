@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gallery — HIJIR</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h1 class="text-center">Gallery</h1>
+    <p class="muted small text-center">Moments from our past tours.</p>
+    <div class="gallery-m" id="grid"></div>
+  </div>
+  <div id="bottomnav"></div>
+  <script type="module">
+    import { GALLERY } from "../shared/data.js";
+    import { renderPublicLayout } from "./js/layout.js";
+    renderPublicLayout("gallery");
+    document.getElementById("grid").innerHTML = GALLERY.map(g => `<div>${esc(g.caption)}</div>`).join("");
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  </script>
+</body>
+</html>

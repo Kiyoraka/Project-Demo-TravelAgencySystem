@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About — HIJIR</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h1 class="text-center">About HIJIR</h1>
+    <div style="background:linear-gradient(135deg,var(--brand-light),#fff);height:180px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:var(--brand-dark);font-weight:600;margin-bottom:16px">Team / Office photo</div>
+    <h2 id="companyName"></h2>
+    <p class="muted small" id="companyReg"></p>
+    <p>We are a licensed Umrah and Haji operator based in Kota Bharu, Kelantan. Since 2024 we have served hundreds of pilgrims with transparent pricing, reliable logistics, and spiritual guidance.</p>
+    <p>Our small team of mutawwif and tour leaders believes every journey begins with trust, and every return home begins with a story worth keeping.</p>
+
+    <h2 class="mt-3">Our Values</h2>
+    <div class="card-stack">
+      <div class="feature-m"><div class="icon">🎯</div><h3>Mission</h3><p class="muted small">To ease every pilgrim's path to the Holy Land.</p></div>
+      <div class="feature-m"><div class="icon">👁</div><h3>Vision</h3><p class="muted small">To be Kelantan's most trusted Umrah operator.</p></div>
+      <div class="feature-m"><div class="icon">💎</div><h3>Values</h3><p class="muted small">Amanah, Ihsan, Ukhuwwah.</p></div>
+    </div>
+  </div>
+  <div id="bottomnav"></div>
+  <script type="module">
+    import { COMPANY } from "../shared/data.js";
+    import { renderPublicLayout } from "./js/layout.js";
+    renderPublicLayout("about");
+    document.getElementById("companyName").textContent = COMPANY.name;
+    document.getElementById("companyReg").textContent = "Reg: " + COMPANY.regNo;
+  </script>
+</body>
+</html>

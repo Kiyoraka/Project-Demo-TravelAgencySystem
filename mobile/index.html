@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HIJIR Travel & Tours</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+
+  <section class="hero-m">
+    <h1 id="heroTitle">Your Journey to Baitullah Starts Here</h1>
+    <p id="heroSub"></p>
+    <a href="packages.html" class="btn">View Packages</a>
+    <a href="contact.html" class="btn btn-outline">Contact Us</a>
+  </section>
+
+  <section class="container">
+    <h2 class="text-center">Why Choose HIJIR?</h2>
+    <div class="card-stack">
+      <div class="feature-m"><div class="icon">🕋</div><h3>Licensed Operator</h3><p class="muted small">Licensed Umrah operator with KPKLN approval.</p></div>
+      <div class="feature-m"><div class="icon">✈</div><h3>Direct Flights</h3><p class="muted small">Direct flight packages with reputable carriers.</p></div>
+      <div class="feature-m"><div class="icon">🏨</div><h3>4-5 Star Hotels</h3><p class="muted small">Hotels walking distance from the Haram.</p></div>
+      <div class="feature-m"><div class="icon">🤝</div><h3>Guided Tours</h3><p class="muted small">Experienced mutawwif and group leaders.</p></div>
+    </div>
+  </section>
+
+  <section class="container" style="background:var(--bg-soft);padding:20px 16px;margin-top:12px">
+    <h2 class="text-center">Our Packages</h2>
+    <div class="card-stack" id="pkgList"></div>
+    <a href="packages.html" class="btn btn-outline btn-block mt-2">View All Packages →</a>
+  </section>
+
+  <section class="container">
+    <div class="flex-between mb-1"><h2 style="margin:0">From Our Gallery</h2><a href="gallery.html">See More</a></div>
+    <div class="gallery-strip-m" id="gStrip"></div>
+  </section>
+
+  <!-- Login modal (opened via drawer login link) -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal">
+      <h3>Admin Login</h3>
+      <form id="loginForm">
+        <div class="form-group"><label>Email</label><input type="email" id="email" required></div>
+        <div class="form-group"><label>Password</label><input type="password" id="password" required></div>
+        <div class="modal-error" id="loginErr"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+          <button type="submit" class="btn">Login</button>
+        </div>
+        <p class="modal-hint">Demo: admin@gmail.com / admin123</p>
+      </form>
+    </div>
+  </div>
+
+  <div id="bottomnav"></div>
+
+  <script type="module">
+    import { COMPANY, PACKAGES, GALLERY } from "../shared/data.js";
+    import { login } from "../shared/auth.js";
+    import { renderPublicLayout } from "./js/layout.js";
+    renderPublicLayout("home");
+
+    document.getElementById("heroTitle").textContent = COMPANY.landing.heroTitle;
+    document.getElementById("heroSub").textContent = COMPANY.landing.heroSubtitle;
+
+    const umrah = PACKAGES.filter(p => p.category === "Umrah").slice(0, 3);
+    document.getElementById("pkgList").innerHTML = umrah.map(p => `
+      <div class="pkg-card-m">
+        <div class="pkg-img">${esc(p.name)}</div>
+        <div class="pkg-body">
+          <div class="pkg-cat">${esc(p.category)}</div>
+          <h3>${esc(p.name)}</h3>
+          <p class="muted small">${esc(p.description)}</p>
+          <div class="pkg-price">RM ${p.price.toLocaleString("en-MY",{minimumFractionDigits:2})}</div>
+          <a href="contact.html?package=${encodeURIComponent(p.name)}" class="btn btn-block">Inquire Now</a>
+        </div>
+      </div>
+    `).join("");
+
+    document.getElementById("gStrip").innerHTML = GALLERY.slice(0, 6).map(g => `<div>${esc(g.caption)}</div>`).join("");
+
+    const lm = document.getElementById("loginModal");
+    lm.addEventListener("click", e => { if (e.target === lm || e.target.matches("[data-close]")) lm.classList.remove("open"); });
+    document.getElementById("loginForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const r = login(document.getElementById("email").value.trim(), document.getElementById("password").value);
+      if (!r.ok) { document.getElementById("loginErr").textContent = r.error; return; }
+      location.href = "admin/dashboard.html";
+    });
+
+    function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+  </script>
+</body>
+</html>

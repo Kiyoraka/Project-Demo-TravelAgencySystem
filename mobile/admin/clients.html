@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clients — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h2>Clients</h2>
+    <div class="form-group"><input type="search" id="search" placeholder="Search name or phone..."></div>
+    <button class="btn btn-block mb-2" id="addBtn">+ Add Client</button>
+    <div id="list"></div>
+  </div>
+
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <h3 id="mTitle">Add Client</h3>
+      <form id="form">
+        <input type="hidden" id="cfId">
+        <div class="form-group"><label>Full Name</label><input type="text" id="cfName" required></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="cfPhone" required></div>
+        <div class="form-group"><label>Address</label><textarea id="cfAddr" required></textarea></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+          <button type="submit" class="btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="bottomnav"></div>
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { CLIENTS, nextClientId } from "../../shared/data.js";
+    import { renderAdminLayout, showToast } from "../js/layout.js";
+
+    if (guard()) {
+      renderAdminLayout("clients", "Clients");
+      const list = document.getElementById("list");
+      const search = document.getElementById("search");
+      const modal = document.getElementById("modal");
+      const form = document.getElementById("form");
+
+      function render(filter = "") {
+        const f = filter.toLowerCase();
+        const rows = f ? CLIENTS.filter(c => (c.name + c.phone).toLowerCase().includes(f)) : CLIENTS;
+        list.innerHTML = rows.length ? rows.map(c => `
+          <div class="client-card-m">
+            <div class="name">${esc(c.name)}</div>
+            <div class="meta">📞 ${esc(c.phone)}</div>
+            <div class="meta">📍 ${esc(c.address)}</div>
+            <div class="actions">
+              <a href="quotation.html?clientId=${c.id}" class="btn btn-sm">📄 Quote</a>
+              <a href="invoice.html?clientId=${c.id}" class="btn btn-sm">🧾 Invoice</a>
+              <a href="receipt.html?clientId=${c.id}" class="btn btn-sm btn-accent">✅ Receipt</a>
+            </div>
+            <div class="actions-row2">
+              <button class="btn btn-sm btn-ghost" data-edit="${c.id}" style="flex:1">Edit</button>
+              <button class="btn btn-sm btn-danger" data-del="${c.id}" style="flex:1">Delete</button>
+            </div>
+          </div>
+        `).join("") : `<p class="muted text-center">No clients.</p>`;
+      }
+      render();
+      search.addEventListener("input", e => render(e.target.value));
+
+      document.getElementById("addBtn").addEventListener("click", () => openModal());
+      list.addEventListener("click", e => {
+        const editId = e.target.dataset.edit;
+        const delId = e.target.dataset.del;
+        if (editId) openModal(CLIENTS.find(c => c.id === Number(editId)));
+        if (delId) {
+          if (!confirm("Delete this client?")) return;
+          const i = CLIENTS.findIndex(c => c.id === Number(delId));
+          if (i > -1) CLIENTS.splice(i, 1);
+          render(search.value); showToast("Deleted");
+        }
+      });
+      modal.addEventListener("click", e => { if (e.target === modal || e.target.matches("[data-close]")) modal.classList.remove("open"); });
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const id = document.getElementById("cfId").value;
+        const p = { name: cfName.value.trim(), phone: cfPhone.value.trim(), address: cfAddr.value.trim() };
+        if (id) { Object.assign(CLIENTS.find(c => c.id === Number(id)), p); showToast("Updated"); }
+        else { CLIENTS.push({ id: nextClientId(), ...p }); showToast("Added"); }
+        modal.classList.remove("open");
+        render(search.value);
+      });
+      function openModal(c) {
+        document.getElementById("mTitle").textContent = c ? "Edit Client" : "Add Client";
+        cfId.value = c?.id || ""; cfName.value = c?.name || ""; cfPhone.value = c?.phone || ""; cfAddr.value = c?.address || "";
+        modal.classList.add("open");
+      }
+      function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gallery — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h2>Gallery</h2>
+    <button class="btn btn-block mb-2" id="uploadBtn">📤 Upload Image</button>
+    <p class="muted small mb-2">Demo only. Images should be dropped into assets/gallery/.</p>
+    <div class="gallery-m" id="grid"></div>
+  </div>
+  <div id="bottomnav"></div>
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { GALLERY } from "../../shared/data.js";
+    import { renderAdminLayout, showToast } from "../js/layout.js";
+    if (guard()) {
+      renderAdminLayout("gallery", "Gallery");
+      const grid = document.getElementById("grid");
+      function render() {
+        grid.innerHTML = GALLERY.map((g, i) => `
+          <div style="position:relative">
+            <div>${g.caption}</div>
+            <button class="btn btn-sm btn-danger" style="position:absolute;top:4px;right:4px" data-del="${i}">🗑</button>
+          </div>`).join("");
+      }
+      render();
+      grid.addEventListener("click", e => { const di = e.target.dataset.del; if (di != null) { GALLERY.splice(+di,1); render(); showToast("Removed"); } });
+      document.getElementById("uploadBtn").addEventListener("click", () => showToast("Demo only — drop files into assets/gallery/"));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+  <div id="topbar"></div>
+  <div class="container">
+    <h2>Dashboard</h2>
+    <div class="stats-m" id="stats"></div>
+    <div class="card mb-2">
+      <h3>Quick Actions</h3>
+      <a href="clients.html" class="btn btn-block mt-1">+ New Client</a>
+      <a href="packages.html" class="btn btn-ghost btn-block mt-1">+ New Package</a>
+    </div>
+    <div class="card">
+      <h3>Recent Activity</h3>
+      <ul id="activity" style="list-style:none;padding:0;margin:0"></ul>
+    </div>
+  </div>
+  <div id="bottomnav"></div>
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { DASHBOARD_STATS, RECENT_ACTIVITY } from "../../shared/data.js";
+    import { renderAdminLayout } from "../js/layout.js";
+    if (guard()) {
+      renderAdminLayout("dashboard", "HIJIR ADMIN");
+      document.getElementById("stats").innerHTML = [
+        { n: DASHBOARD_STATS.totalClients, l: "Clients" },
+        { n: DASHBOARD_STATS.totalQuotations, l: "Quotes" },
+        { n: DASHBOARD_STATS.totalInvoices, l: "Invoices" },
+        { n: DASHBOARD_STATS.totalReceipts, l: "Receipts" }
+      ].map(s => `<div class="stat-card"><div class="stat-num">${s.n}</div><div class="stat-label">${s.l}</div></div>`).join("");
+      document.getElementById("activity").innerHTML = RECENT_ACTIVITY.slice(0, 4).map(a => `
+        <li style="padding:8px 0;border-bottom:1px solid var(--border);font-size:0.88rem">
+          <span class="badge">${a.type}</span> <strong>${a.docNo}</strong><br>
+          <span class="muted">${a.clientName} · ${a.date}</span>
+        </li>`).join("");
+    }
+  </script>
+</body>
+</html>
