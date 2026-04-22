@@ -20,18 +20,7 @@ export function renderAdminShell(activeKey) {
   sidebar.outerHTML = `
     <aside class="admin-sidebar">
       <div class="brand">HIJIR ADMIN</div>
-      ${items.slice(0, 3).map(i => `
-        <a href="${i.href}" class="${activeKey === i.key ? "active" : ""}">
-          <span>${i.icon}</span><span>${i.label}</span>
-        </a>
-      `).join("")}
-      <details ${["quotation","invoice","receipt"].includes(activeKey) ? "open" : ""}>
-        <summary><span>➕</span><span>Create</span></summary>
-        <a href="#" data-create="quotation" class="${activeKey==="quotation"?"active":""}">Quotation</a>
-        <a href="#" data-create="invoice" class="${activeKey==="invoice"?"active":""}">Invoice</a>
-        <a href="#" data-create="receipt" class="${activeKey==="receipt"?"active":""}">Receipt</a>
-      </details>
-      ${items.slice(3).map(i => `
+      ${items.map(i => `
         <a href="${i.href}" class="${activeKey === i.key ? "active" : ""}">
           <span>${i.icon}</span><span>${i.label}</span>
         </a>
@@ -53,14 +42,6 @@ export function renderAdminShell(activeKey) {
     logout();
     location.href = "../index.html";
   });
-
-  // Wire Create dropdown — show client-picker modal then route
-  document.querySelectorAll("[data-create]").forEach(el => {
-    el.addEventListener("click", e => {
-      e.preventDefault();
-      openClientPicker(el.dataset.create);
-    });
-  });
 }
 
 function titleFor(key) {
@@ -74,45 +55,6 @@ function titleFor(key) {
     gallery: "Gallery Management",
     settings: "Site Settings"
   })[key] || "Admin";
-}
-
-// Client-picker modal used by Create dropdown. Creates the modal on demand.
-async function openClientPicker(docType) {
-  const { CLIENTS } = await import("../../shared/data.js");
-  let backdrop = document.getElementById("clientPickerModal");
-  if (!backdrop) {
-    backdrop = document.createElement("div");
-    backdrop.id = "clientPickerModal";
-    backdrop.className = "modal-backdrop";
-    backdrop.innerHTML = `
-      <div class="modal">
-        <button class="close-x" data-close>✕</button>
-        <h3 id="cpTitle"></h3>
-        <div class="form-group">
-          <label>Select client</label>
-          <select id="cpSelect"></select>
-        </div>
-        <div class="modal-actions">
-          <a href="clients.html" class="btn btn-ghost">+ Add new client</a>
-          <button class="btn btn-ghost" data-close>Cancel</button>
-          <button class="btn" id="cpContinue">Continue</button>
-        </div>
-      </div>`;
-    document.body.appendChild(backdrop);
-    backdrop.addEventListener("click", e => {
-      if (e.target === backdrop || e.target.matches("[data-close]")) backdrop.classList.remove("open");
-    });
-  }
-  const { CLIENTS: list } = await import("../../shared/data.js");
-  const sel = backdrop.querySelector("#cpSelect");
-  sel.innerHTML = list.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
-  backdrop.querySelector("#cpTitle").textContent = "Create " + docType.charAt(0).toUpperCase() + docType.slice(1);
-  const continueBtn = backdrop.querySelector("#cpContinue");
-  continueBtn.onclick = () => {
-    const id = sel.value;
-    location.href = `${docType}.html?clientId=${id}`;
-  };
-  backdrop.classList.add("open");
 }
 
 function escapeHtml(s) {
