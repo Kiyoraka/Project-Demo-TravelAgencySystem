@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gallery — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../css/desktop.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <div id="adminSidebar"></div>
+    <div class="admin-main">
+      <div id="adminTopbar"></div>
+      <main class="admin-content">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Gallery Management</h3>
+            <button class="btn" id="uploadBtn">📤 Upload Image</button>
+          </div>
+          <p class="muted small mb-3">Demo: upload shows a toast. In production this would save to server. Images should be dropped into <code>assets/gallery/</code>.</p>
+          <div class="gallery-grid" id="grid"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved.</div>
+
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { GALLERY } from "../../shared/data.js";
+    import { renderAdminShell } from "../js/admin-layout.js";
+    if (guard()) {
+      renderAdminShell("gallery");
+      const grid = document.getElementById("grid");
+      const toast = document.getElementById("toast");
+      function render() {
+        grid.innerHTML = GALLERY.map((g, i) => `
+          <div style="position:relative">
+            <div class="img-placeholder">${g.caption}</div>
+            <button class="btn btn-sm btn-danger" style="position:absolute;top:8px;right:8px" data-del="${i}">🗑</button>
+          </div>
+        `).join("");
+      }
+      render();
+      grid.addEventListener("click", e => {
+        const di = e.target.dataset.del;
+        if (di != null) { GALLERY.splice(+di, 1); render(); showToast("Image removed"); }
+      });
+      document.getElementById("uploadBtn").addEventListener("click", () => showToast("Upload is demo-only — drop files into assets/gallery/"));
+      function showToast(m) { toast.textContent = m; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2000); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Receipt — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../css/desktop.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <div id="adminSidebar"></div>
+    <div class="admin-main">
+      <div id="adminTopbar"></div>
+      <main class="admin-content">
+        <div class="panel">
+          <h3>Generate Receipt</h3>
+          <div class="grid grid-3" style="gap:16px">
+            <div class="form-group">
+              <label>Receipt No.</label>
+              <input type="text" id="rNo" readonly>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="date">
+            </div>
+            <div class="form-group">
+              <label>Client</label>
+              <select id="clientSel"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Products</h3>
+            <button class="btn btn-sm" id="addRow">+ Add Row</button>
+          </div>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Produk / Note</th>
+                <th style="width:110px">Harga (RM)</th>
+                <th style="width:80px">Kuantiti</th>
+                <th style="width:130px">Jumlah (RM)</th>
+                <th class="col-del"></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+
+          <div class="summary-box">
+            <div class="label">Subtotal</div>   <div class="val" id="sSub">0.00</div>
+            <div class="label">Deposit (RM)</div>
+            <div class="val"><input type="number" step="0.01" id="deposit" value="0" style="width:120px;text-align:right;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font:inherit"></div>
+            <div class="label grand">Jumlah Baki</div>
+            <div class="val grand" id="sBaki">0.00</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Payment</h3>
+          <div class="flex flex-gap" style="flex-wrap:wrap">
+            <label><input type="radio" name="pay" value="TUNAI" checked> Tunai</label>
+            <label><input type="radio" name="pay" value="ONLINE"> Online</label>
+            <label><input type="radio" name="pay" value="CEK"> Cek</label>
+          </div>
+          <label class="mt-2" style="display:flex;gap:8px;align-items:center">
+            <input type="checkbox" id="paidStamp"> Show PAID stamp on receipt
+            <span class="small muted">(auto-checked when Baki = 0)</span>
+          </label>
+        </div>
+
+        <div class="flex-between">
+          <a href="clients.html" class="btn btn-ghost">← Back to Clients</a>
+          <button class="btn btn-lg" id="genPdf">Generate PDF</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../../libs/jspdf.umd.min.js"></script>
+  <script src="../../libs/jspdf.plugin.autotable.min.js"></script>
+  <script type="module">
+    import { guard, getQueryParam } from "../../shared/router.js";
+    import { CLIENTS, PACKAGES, findClient } from "../../shared/data.js";
+    import { renderAdminShell } from "../js/admin-layout.js";
+    import { buildReceipt } from "../../shared/pdf-generator.js";
+
+    if (guard()) {
+      renderAdminShell("receipt");
+
+      document.getElementById("rNo").value = "HIJIR" + new Date().toISOString().slice(5, 10).replace(/-/g, "") + new Date().getFullYear().toString().slice(2);
+      document.getElementById("date").value = new Date().toISOString().slice(0, 10);
+
+      const clientSel = document.getElementById("clientSel");
+      clientSel.innerHTML = CLIENTS.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+      const preId = getQueryParam("clientId");
+      if (preId && findClient(preId)) clientSel.value = preId;
+
+      const rowsEl = document.getElementById("rows");
+      let rows = [];
+      function addRow(preset = {}) {
+        rows.push({ produk: "", price: 0, qty: 1, ...preset });
+        render();
+      }
+      function rowJumlah(r) { return (+r.price || 0) * (+r.qty || 0); }
+      function render() {
+        rowsEl.innerHTML = rows.map((r, i) => `
+          <tr>
+            <td><input type="text" data-k="produk" data-i="${i}" value="${esc(r.produk)}"></td>
+            <td><input type="number" step="0.01" data-k="price" data-i="${i}" value="${r.price || ""}"></td>
+            <td><input type="number" data-k="qty" data-i="${i}" value="${r.qty || ""}"></td>
+            <td style="text-align:right;font-variant-numeric:tabular-nums">${fmt(rowJumlah(r))}</td>
+            <td class="col-del"><button class="row-del" data-del="${i}">✕</button></td>
+          </tr>
+        `).join("");
+        updateSummary();
+      }
+      function updateSummary() {
+        const sub = rows.reduce((s, r) => s + rowJumlah(r), 0);
+        const dep = parseFloat(document.getElementById("deposit").value) || 0;
+        const baki = Math.max(0, sub - dep);
+        document.getElementById("sSub").textContent = fmt(sub);
+        document.getElementById("sBaki").textContent = fmt(baki);
+        // Auto-check PAID when baki==0 and deposit > 0
+        const paidBox = document.getElementById("paidStamp");
+        if (sub > 0 && baki === 0) paidBox.checked = true;
+        if (baki > 0) paidBox.checked = false;
+      }
+      rowsEl.addEventListener("input", e => {
+        const i = +e.target.dataset.i;
+        const k = e.target.dataset.k;
+        if (isNaN(i) || !k) return;
+        rows[i][k] = e.target.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
+        const row = e.target.closest("tr");
+        row.children[3].textContent = fmt(rowJumlah(rows[i]));
+        updateSummary();
+      });
+      rowsEl.addEventListener("click", e => {
+        const di = e.target.dataset.del;
+        if (di != null) { rows.splice(+di, 1); render(); }
+      });
+      document.getElementById("addRow").addEventListener("click", () => addRow());
+      document.getElementById("deposit").addEventListener("input", updateSummary);
+      addRow();
+
+      document.getElementById("genPdf").addEventListener("click", () => {
+        const rNo = document.getElementById("rNo").value;
+        const date = formatDate(document.getElementById("date").value);
+        const client = findClient(clientSel.value);
+        const sub = rows.reduce((s, r) => s + rowJumlah(r), 0);
+        const dep = parseFloat(document.getElementById("deposit").value) || 0;
+        const baki = Math.max(0, sub - dep);
+        const payment = document.querySelector("input[name=pay]:checked").value;
+        const paid = document.getElementById("paidStamp").checked;
+        buildReceipt({
+          receiptNo: rNo, date,
+          client: client || { name: "", phone: "" },
+          rows: rows.map(r => ({ produk: r.produk, price: +r.price || 0, qty: +r.qty || 0, jumlah: rowJumlah(r) })),
+          subtotal: sub, deposit: dep, balance: baki, payment, paid
+        });
+      });
+
+      function fmt(n) { return (+n || 0).toLocaleString("en-MY", {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+      function formatDate(iso) {
+        if (!iso) return "";
+        const [y, m, d] = iso.split("-");
+        return `${d}/${m}/${y}`;
+      }
+      function esc(s) { return String(s).replace(/"/g, "&quot;"); }
+    }
+  </script>
+</body>
+</html>

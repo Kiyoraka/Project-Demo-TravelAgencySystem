@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Packages — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../css/desktop.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <div id="adminSidebar"></div>
+    <div class="admin-main">
+      <div id="adminTopbar"></div>
+      <main class="admin-content">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Package Management</h3>
+            <button class="btn" id="addBtn">+ Add Package</button>
+          </div>
+          <div class="chips mb-2" id="filterChips" style="justify-content:flex-start">
+            <button class="chip active" data-cat="All">All</button>
+            <button class="chip" data-cat="Umrah">Umrah</button>
+            <button class="chip" data-cat="Haji">Haji</button>
+            <button class="chip" data-cat="Ziarah">Ziarah</button>
+            <button class="chip" data-cat="Add-on">Add-on</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:100px">Image</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price (RM)</th>
+                <th>Description</th>
+                <th style="width:160px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pkgBody"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="pkgModal">
+    <div class="modal wide">
+      <button class="close-x" data-close>✕</button>
+      <h3 id="pkgModalTitle">Add Package</h3>
+      <form id="pkgForm">
+        <input type="hidden" id="pfId">
+        <div class="grid grid-2" style="gap:16px">
+          <div class="form-group">
+            <label for="pfName">Name</label>
+            <input type="text" id="pfName" required>
+          </div>
+          <div class="form-group">
+            <label for="pfCode">Code</label>
+            <input type="text" id="pfCode" required>
+          </div>
+          <div class="form-group">
+            <label for="pfCat">Category</label>
+            <select id="pfCat" required>
+              <option>Umrah</option>
+              <option>Haji</option>
+              <option>Ziarah</option>
+              <option>Add-on</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pfPrice">Price (RM)</label>
+            <input type="number" step="0.01" id="pfPrice" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="pfDesc">Description</label>
+          <textarea id="pfDesc"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="pfImg">Image path (optional)</label>
+          <input type="text" id="pfImg" placeholder="assets/packages/your-image.jpg">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+          <button type="submit" class="btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved.</div>
+
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { PACKAGES, nextPackageId } from "../../shared/data.js";
+    import { renderAdminShell } from "../js/admin-layout.js";
+
+    if (guard()) {
+      renderAdminShell("packages");
+
+      const body = document.getElementById("pkgBody");
+      const modal = document.getElementById("pkgModal");
+      const form = document.getElementById("pkgForm");
+      const toast = document.getElementById("toast");
+      let activeCat = "All";
+
+      function render() {
+        const list = activeCat === "All" ? PACKAGES : PACKAGES.filter(p => p.category === activeCat);
+        body.innerHTML = list.length ? list.map(p => `
+          <tr>
+            <td><div class="img-placeholder" style="width:80px;height:60px;aspect-ratio:auto;font-size:0.7rem">${p.image ? "img" : "—"}</div></td>
+            <td><strong>${esc(p.name)}</strong><br><span class="small muted">${esc(p.code)}</span></td>
+            <td><span class="badge">${esc(p.category)}</span></td>
+            <td>${p.price.toLocaleString("en-MY", {minimumFractionDigits: 2})}</td>
+            <td class="small muted">${esc(p.description)}</td>
+            <td class="actions">
+              <button class="btn btn-sm btn-ghost" data-edit="${p.id}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-del="${p.id}">Delete</button>
+            </td>
+          </tr>
+        `).join("") : `<tr><td colspan="6" class="text-center muted" style="padding:24px">No packages.</td></tr>`;
+      }
+      render();
+
+      document.querySelectorAll("#filterChips .chip").forEach(c => c.addEventListener("click", () => {
+        document.querySelectorAll("#filterChips .chip").forEach(x => x.classList.remove("active"));
+        c.classList.add("active");
+        activeCat = c.dataset.cat;
+        render();
+      }));
+
+      document.getElementById("addBtn").addEventListener("click", () => openModal());
+      body.addEventListener("click", e => {
+        const editId = e.target.dataset.edit;
+        const delId = e.target.dataset.del;
+        if (editId) openModal(PACKAGES.find(p => p.id === Number(editId)));
+        if (delId) {
+          if (!confirm("Delete this package?")) return;
+          const i = PACKAGES.findIndex(p => p.id === Number(delId));
+          if (i > -1) PACKAGES.splice(i, 1);
+          render();
+          showToast("Package deleted");
+        }
+      });
+
+      modal.addEventListener("click", e => {
+        if (e.target === modal || e.target.matches("[data-close]")) modal.classList.remove("open");
+      });
+
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const id = document.getElementById("pfId").value;
+        const payload = {
+          name: document.getElementById("pfName").value.trim(),
+          code: document.getElementById("pfCode").value.trim(),
+          category: document.getElementById("pfCat").value,
+          price: parseFloat(document.getElementById("pfPrice").value) || 0,
+          description: document.getElementById("pfDesc").value.trim(),
+          image: document.getElementById("pfImg").value.trim()
+        };
+        if (id) {
+          Object.assign(PACKAGES.find(p => p.id === Number(id)), payload);
+          showToast("Package updated");
+        } else {
+          PACKAGES.push({ id: nextPackageId(), ...payload });
+          showToast("Package added");
+        }
+        modal.classList.remove("open");
+        render();
+      });
+
+      function openModal(pkg) {
+        document.getElementById("pkgModalTitle").textContent = pkg ? "Edit Package" : "Add Package";
+        document.getElementById("pfId").value = pkg?.id || "";
+        document.getElementById("pfName").value = pkg?.name || "";
+        document.getElementById("pfCode").value = pkg?.code || "";
+        document.getElementById("pfCat").value = pkg?.category || "Umrah";
+        document.getElementById("pfPrice").value = pkg?.price || "";
+        document.getElementById("pfDesc").value = pkg?.description || "";
+        document.getElementById("pfImg").value = pkg?.image || "";
+        modal.classList.add("open");
+      }
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2000);
+      }
+      function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+    }
+  </script>
+</body>
+</html>

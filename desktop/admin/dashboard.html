@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../css/desktop.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <div id="adminSidebar"></div>
+    <div class="admin-main">
+      <div id="adminTopbar"></div>
+      <main class="admin-content">
+        <div class="stats-grid" id="stats"></div>
+
+        <div class="panel">
+          <h3>Quick Actions</h3>
+          <div class="flex flex-gap" style="flex-wrap:wrap">
+            <a href="clients.html" class="btn">+ New Client</a>
+            <a href="packages.html" class="btn">+ New Package</a>
+            <a href="#" class="btn btn-accent" id="createDocBtn">+ Create Document</a>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Recent Activity</h3>
+          <ul id="activity" style="list-style:none;padding:0;margin:0"></ul>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { DASHBOARD_STATS, RECENT_ACTIVITY } from "../../shared/data.js";
+    import { renderAdminShell } from "../js/admin-layout.js";
+
+    if (!guard()) { /* guarded */ } else {
+      renderAdminShell("dashboard");
+
+      document.getElementById("stats").innerHTML = [
+        { n: DASHBOARD_STATS.totalClients, l: "Clients" },
+        { n: DASHBOARD_STATS.totalQuotations, l: "Quotations" },
+        { n: DASHBOARD_STATS.totalInvoices, l: "Invoices" },
+        { n: DASHBOARD_STATS.totalReceipts, l: "Receipts" },
+        { n: DASHBOARD_STATS.revenueThisMonth, l: "Revenue (this month)" }
+      ].map(s => `
+        <div class="stat-card">
+          <div class="stat-num">${s.n}</div>
+          <div class="stat-label">${s.l}</div>
+        </div>
+      `).join("");
+
+      document.getElementById("activity").innerHTML = RECENT_ACTIVITY.map(a => `
+        <li style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+          <span><span class="badge">${a.type}</span> <strong>${a.docNo}</strong> — ${a.clientName}</span>
+          <span class="muted small">${a.date}</span>
+        </li>
+      `).join("");
+
+      document.getElementById("createDocBtn").addEventListener("click", e => {
+        e.preventDefault();
+        // Reuse the same client-picker by triggering the Create summary from sidebar
+        document.querySelector("[data-create='invoice']").click();
+      });
+    }
+  </script>
+</body>
+</html>

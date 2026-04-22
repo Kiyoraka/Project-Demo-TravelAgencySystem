@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clients — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../css/desktop.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <div id="adminSidebar"></div>
+    <div class="admin-main">
+      <div id="adminTopbar"></div>
+      <main class="admin-content">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Client Management</h3>
+            <button class="btn" id="addBtn">+ Add Client</button>
+          </div>
+          <div class="search-bar">
+            <input type="search" id="search" placeholder="Search by name or phone...">
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:60px">ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th style="width:360px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clientsBody"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Client form modal (shared for Add/Edit) -->
+  <div class="modal-backdrop" id="clientModal">
+    <div class="modal">
+      <button class="close-x" data-close>✕</button>
+      <h3 id="clientModalTitle">Add New Client</h3>
+      <form id="clientForm">
+        <input type="hidden" id="cfId">
+        <div class="form-group">
+          <label for="cfName">Full Name</label>
+          <input type="text" id="cfName" required>
+        </div>
+        <div class="form-group">
+          <label for="cfPhone">Phone</label>
+          <input type="tel" id="cfPhone" required>
+        </div>
+        <div class="form-group">
+          <label for="cfAddr">Address</label>
+          <textarea id="cfAddr" required></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+          <button type="submit" class="btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Saved.</div>
+
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { CLIENTS, nextClientId } from "../../shared/data.js";
+    import { renderAdminShell } from "../js/admin-layout.js";
+
+    if (guard()) {
+      renderAdminShell("clients");
+
+      const body = document.getElementById("clientsBody");
+      const search = document.getElementById("search");
+      const modal = document.getElementById("clientModal");
+      const form = document.getElementById("clientForm");
+      const toast = document.getElementById("toast");
+
+      function render(filter = "") {
+        const f = filter.toLowerCase();
+        const list = f ? CLIENTS.filter(c => (c.name + c.phone).toLowerCase().includes(f)) : CLIENTS;
+        body.innerHTML = list.length ? list.map(c => `
+          <tr>
+            <td>${c.id}</td>
+            <td>${esc(c.name)}</td>
+            <td>${esc(c.phone)}</td>
+            <td class="small muted">${esc(c.address)}</td>
+            <td class="actions">
+              <a href="quotation.html?clientId=${c.id}" class="btn btn-sm">Quote</a>
+              <a href="invoice.html?clientId=${c.id}" class="btn btn-sm">Invoice</a>
+              <a href="receipt.html?clientId=${c.id}" class="btn btn-sm btn-accent">Receipt</a>
+              <button class="btn btn-sm btn-ghost" data-edit="${c.id}">Edit</button>
+              <button class="btn btn-sm btn-danger" data-del="${c.id}">Delete</button>
+            </td>
+          </tr>
+        `).join("") : `<tr><td colspan="5" class="text-center muted" style="padding:24px">No clients match.</td></tr>`;
+      }
+      render();
+
+      search.addEventListener("input", e => render(e.target.value));
+
+      document.getElementById("addBtn").addEventListener("click", () => openModal());
+      body.addEventListener("click", e => {
+        const editId = e.target.dataset.edit;
+        const delId = e.target.dataset.del;
+        if (editId) openModal(CLIENTS.find(c => c.id === Number(editId)));
+        if (delId) {
+          if (!confirm("Delete this client?")) return;
+          const i = CLIENTS.findIndex(c => c.id === Number(delId));
+          if (i > -1) CLIENTS.splice(i, 1);
+          render(search.value);
+          showToast("Client deleted");
+        }
+      });
+
+      modal.addEventListener("click", e => {
+        if (e.target === modal || e.target.matches("[data-close]")) modal.classList.remove("open");
+      });
+
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const id = document.getElementById("cfId").value;
+        const payload = {
+          name: document.getElementById("cfName").value.trim(),
+          phone: document.getElementById("cfPhone").value.trim(),
+          address: document.getElementById("cfAddr").value.trim()
+        };
+        if (id) {
+          Object.assign(CLIENTS.find(c => c.id === Number(id)), payload);
+          showToast("Client updated");
+        } else {
+          CLIENTS.push({ id: nextClientId(), ...payload });
+          showToast("Client added");
+        }
+        modal.classList.remove("open");
+        render(search.value);
+      });
+
+      function openModal(client) {
+        document.getElementById("clientModalTitle").textContent = client ? "Edit Client" : "Add New Client";
+        document.getElementById("cfId").value = client?.id || "";
+        document.getElementById("cfName").value = client?.name || "";
+        document.getElementById("cfPhone").value = client?.phone || "";
+        document.getElementById("cfAddr").value = client?.address || "";
+        modal.classList.add("open");
+      }
+
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2000);
+      }
+
+      function esc(s) { return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+    }
+  </script>
+</body>
+</html>

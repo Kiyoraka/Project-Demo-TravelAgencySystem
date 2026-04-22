@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Quotation — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../css/desktop.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <div id="adminSidebar"></div>
+    <div class="admin-main">
+      <div id="adminTopbar"></div>
+      <main class="admin-content">
+        <div class="panel">
+          <h3>Create Quotation</h3>
+          <div class="grid grid-3" style="gap:16px">
+            <div class="form-group">
+              <label>Quote No.</label>
+              <input type="text" id="quoteNo" readonly>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="date">
+            </div>
+            <div class="form-group">
+              <label>Attention To (Client)</label>
+              <select id="clientSel"></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Travelers &amp; Packages</h3>
+            <button class="btn btn-sm" id="addRow">+ Add Row</button>
+          </div>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th style="width:36px">No</th>
+                <th>Name</th>
+                <th style="width:140px">Package</th>
+                <th style="width:110px">Price (RM)</th>
+                <th style="width:110px">Additional (RM)</th>
+                <th style="width:110px">Discount (RM)</th>
+                <th style="width:110px">Total (RM)</th>
+                <th class="col-del"></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+
+          <div class="summary-box">
+            <div class="label">Total</div>            <div class="val" id="sTotal">0.00</div>
+            <div class="label">Discount</div>         <div class="val" id="sDisc">0.00</div>
+            <div class="label">Additional</div>       <div class="val" id="sAdd">0.00</div>
+            <div class="label grand">After Discount</div><div class="val grand" id="sFinal">0.00</div>
+          </div>
+        </div>
+
+        <div class="flex-between">
+          <a href="clients.html" class="btn btn-ghost">← Back to Clients</a>
+          <button class="btn btn-lg" id="genPdf">Generate PDF</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../../libs/jspdf.umd.min.js"></script>
+  <script src="../../libs/jspdf.plugin.autotable.min.js"></script>
+  <script type="module">
+    import { guard, getQueryParam } from "../../shared/router.js";
+    import { CLIENTS, PACKAGES, findClient } from "../../shared/data.js";
+    import { renderAdminShell } from "../js/admin-layout.js";
+    import { buildQuotation } from "../../shared/pdf-generator.js";
+
+    if (guard()) {
+      renderAdminShell("quotation");
+
+      // Populate fields
+      document.getElementById("quoteNo").value = "LCS-" + Math.floor(1000 + Math.random() * 9000);
+      document.getElementById("date").value = new Date().toISOString().slice(0, 10);
+
+      const clientSel = document.getElementById("clientSel");
+      clientSel.innerHTML = CLIENTS.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+      const preId = getQueryParam("clientId");
+      if (preId && findClient(preId)) clientSel.value = preId;
+
+      // Rows
+      const rowsEl = document.getElementById("rows");
+      const pkgOptions = `<option value="">--</option>` + PACKAGES.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+      let rows = [];
+      function addRow(preset = {}) {
+        rows.push({ name: "", pkgId: "", price: 0, additional: 0, discount: 0, ...preset });
+        render();
+      }
+      function render() {
+        rowsEl.innerHTML = rows.map((r, i) => `
+          <tr>
+            <td>${i + 1}</td>
+            <td><input type="text" data-k="name" data-i="${i}" value="${esc(r.name)}"></td>
+            <td><select data-k="pkgId" data-i="${i}">${pkgOptions}</select></td>
+            <td><input type="number" step="0.01" data-k="price" data-i="${i}" value="${r.price || ""}"></td>
+            <td><input type="number" step="0.01" data-k="additional" data-i="${i}" value="${r.additional || ""}"></td>
+            <td><input type="number" step="0.01" data-k="discount" data-i="${i}" value="${r.discount || ""}"></td>
+            <td style="text-align:right;font-variant-numeric:tabular-nums">${fmt(rowTotal(r))}</td>
+            <td class="col-del"><button class="row-del" data-del="${i}">✕</button></td>
+          </tr>
+        `).join("");
+        // Restore pkg selects after innerHTML reset
+        rows.forEach((r, i) => {
+          const sel = rowsEl.querySelector(`select[data-i="${i}"]`);
+          if (sel) sel.value = r.pkgId || "";
+        });
+        updateSummary();
+      }
+      function rowTotal(r) {
+        return (+r.price || 0) + (+r.additional || 0) - (+r.discount || 0);
+      }
+      function updateSummary() {
+        const total = rows.reduce((s, r) => s + (+r.price || 0), 0);
+        const disc  = rows.reduce((s, r) => s + (+r.discount || 0), 0);
+        const add   = rows.reduce((s, r) => s + (+r.additional || 0), 0);
+        document.getElementById("sTotal").textContent = fmt(total);
+        document.getElementById("sDisc").textContent = fmt(disc);
+        document.getElementById("sAdd").textContent = fmt(add);
+        document.getElementById("sFinal").textContent = fmt(total - disc + add);
+      }
+      rowsEl.addEventListener("input", e => {
+        const i = +e.target.dataset.i;
+        const k = e.target.dataset.k;
+        if (isNaN(i) || !k) return;
+        rows[i][k] = e.target.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
+        if (k === "pkgId") {
+          const p = PACKAGES.find(x => x.id === +e.target.value);
+          if (p) { rows[i].price = p.price; render(); return; }
+        }
+        // Just update the computed column without full re-render
+        const row = e.target.closest("tr");
+        row.children[6].textContent = fmt(rowTotal(rows[i]));
+        updateSummary();
+      });
+      rowsEl.addEventListener("click", e => {
+        const di = e.target.dataset.del;
+        if (di != null) { rows.splice(+di, 1); render(); }
+      });
+      document.getElementById("addRow").addEventListener("click", () => addRow());
+      addRow();
+
+      // Generate PDF
+      document.getElementById("genPdf").addEventListener("click", () => {
+        const quoteNo = document.getElementById("quoteNo").value;
+        const date = formatDate(document.getElementById("date").value);
+        const client = findClient(clientSel.value);
+        const total = rows.reduce((s, r) => s + (+r.price || 0), 0);
+        const disc  = rows.reduce((s, r) => s + (+r.discount || 0), 0);
+        const add   = rows.reduce((s, r) => s + (+r.additional || 0), 0);
+        buildQuotation({
+          quoteNo, date,
+          attentionTo: client?.name || "",
+          rows: rows.map(r => ({
+            name: r.name,
+            pkg: PACKAGES.find(p => p.id === +r.pkgId)?.code || "",
+            price: +r.price || 0,
+            additional: +r.additional || 0,
+            discount: +r.discount || 0,
+            total: rowTotal(r)
+          })),
+          totals: { total, discount: disc, additional: add, finalTotal: total - disc + add }
+        });
+      });
+
+      function fmt(n) { return (+n || 0).toLocaleString("en-MY", {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+      function formatDate(iso) {
+        if (!iso) return "";
+        const [y, m, d] = iso.split("-");
+        return `${d}/${m}/${y}`;
+      }
+      function esc(s) { return String(s).replace(/"/g, "&quot;"); }
+    }
+  </script>
+</body>
+</html>

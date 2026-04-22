@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../css/desktop.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <div id="adminSidebar"></div>
+    <div class="admin-main">
+      <div id="adminTopbar"></div>
+      <main class="admin-content">
+        <form id="settingsForm">
+          <div class="panel">
+            <h3>Company Info</h3>
+            <div class="grid grid-2" style="gap:16px">
+              <div class="form-group"><label>Company Name</label><input type="text" id="sName"></div>
+              <div class="form-group"><label>Registration No.</label><input type="text" id="sReg"></div>
+            </div>
+            <div class="form-group"><label>Address Line 1</label><input type="text" id="sA1"></div>
+            <div class="form-group"><label>Address Line 2</label><input type="text" id="sA2"></div>
+            <div class="form-group"><label>Address Line 3</label><input type="text" id="sA3"></div>
+            <div class="form-group"><label>Address Line 4</label><input type="text" id="sA4"></div>
+            <div class="grid grid-2" style="gap:16px">
+              <div class="form-group"><label>Phone</label><input type="text" id="sPhone"></div>
+              <div class="form-group"><label>Email</label><input type="email" id="sEmail"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Logo</h3>
+            <div class="flex flex-gap" style="align-items:center">
+              <div class="img-placeholder" style="width:100px;height:100px;aspect-ratio:auto">LOGO</div>
+              <button type="button" class="btn btn-ghost" id="changeLogo">📤 Change Logo</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Bank Details</h3>
+            <div class="form-group"><label>Bank Name</label><input type="text" id="sBank"></div>
+            <div class="grid grid-2" style="gap:16px">
+              <div class="form-group"><label>Account Number</label><input type="text" id="sAcc"></div>
+              <div class="form-group"><label>Account Name</label><input type="text" id="sAccName"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h3>Landing Page</h3>
+            <div class="form-group"><label>Hero Title</label><input type="text" id="sHero"></div>
+            <div class="form-group"><label>Hero Subtitle</label><input type="text" id="sHeroSub"></div>
+          </div>
+
+          <div class="flex-between">
+            <span></span>
+            <button type="submit" class="btn btn-lg">Save Changes</button>
+          </div>
+        </form>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Settings saved!</div>
+
+  <script type="module">
+    import { guard } from "../../shared/router.js";
+    import { COMPANY } from "../../shared/data.js";
+    import { renderAdminShell } from "../js/admin-layout.js";
+
+    if (guard()) {
+      renderAdminShell("settings");
+
+      document.getElementById("sName").value = COMPANY.name;
+      document.getElementById("sReg").value = COMPANY.regNo;
+      document.getElementById("sA1").value = COMPANY.address[0] || "";
+      document.getElementById("sA2").value = COMPANY.address[1] || "";
+      document.getElementById("sA3").value = COMPANY.address[2] || "";
+      document.getElementById("sA4").value = COMPANY.address[3] || "";
+      document.getElementById("sPhone").value = COMPANY.phone;
+      document.getElementById("sEmail").value = COMPANY.email;
+      document.getElementById("sBank").value = COMPANY.bank.name;
+      document.getElementById("sAcc").value = COMPANY.bank.accountNo;
+      document.getElementById("sAccName").value = COMPANY.bank.accountName;
+      document.getElementById("sHero").value = COMPANY.landing.heroTitle;
+      document.getElementById("sHeroSub").value = COMPANY.landing.heroSubtitle;
+
+      document.getElementById("settingsForm").addEventListener("submit", e => {
+        e.preventDefault();
+        // Mutate in-memory COMPANY (demo only, no persistence)
+        COMPANY.name = document.getElementById("sName").value;
+        COMPANY.regNo = document.getElementById("sReg").value;
+        COMPANY.address = [
+          document.getElementById("sA1").value,
+          document.getElementById("sA2").value,
+          document.getElementById("sA3").value,
+          document.getElementById("sA4").value
+        ].filter(Boolean);
+        COMPANY.phone = document.getElementById("sPhone").value;
+        COMPANY.email = document.getElementById("sEmail").value;
+        COMPANY.bank.name = document.getElementById("sBank").value;
+        COMPANY.bank.accountNo = document.getElementById("sAcc").value;
+        COMPANY.bank.accountName = document.getElementById("sAccName").value;
+        COMPANY.landing.heroTitle = document.getElementById("sHero").value;
+        COMPANY.landing.heroSubtitle = document.getElementById("sHeroSub").value;
+        const t = document.getElementById("toast");
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+      });
+
+      document.getElementById("changeLogo").addEventListener("click", () => {
+        const t = document.getElementById("toast");
+        t.textContent = "Demo-only — replace assets/logo.png directly";
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2500);
+      });
+    }
+  </script>
+</body>
+</html>

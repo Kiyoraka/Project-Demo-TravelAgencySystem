@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Invoice — HIJIR Admin</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="../css/desktop.css">
+</head>
+<body>
+  <div class="admin-shell">
+    <div id="adminSidebar"></div>
+    <div class="admin-main">
+      <div id="adminTopbar"></div>
+      <main class="admin-content">
+        <div class="panel">
+          <h3>Generate Invoice</h3>
+          <div class="grid grid-3" style="gap:16px">
+            <div class="form-group">
+              <label>Invoice No.</label>
+              <input type="text" id="invNo" readonly>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="date">
+            </div>
+            <div class="form-group">
+              <label>Client</label>
+              <select id="clientSel"></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Client details (auto-filled)</label>
+            <div id="clientDetails" class="small muted" style="padding:10px;background:var(--bg-soft);border-radius:8px"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Line Items</h3>
+            <button class="btn btn-sm" id="addRow">+ Add Row</button>
+          </div>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th style="width:110px">Price/Pax</th>
+                <th style="width:80px">Unit</th>
+                <th style="width:80px">Kuantiti</th>
+                <th style="width:130px">Jumlah (RM)</th>
+                <th class="col-del"></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="summary-box">
+            <div class="label grand">JUMLAH KESELURUHAN (RM)</div>
+            <div class="val grand" id="sGrand">0.00</div>
+          </div>
+        </div>
+
+        <div class="flex-between">
+          <a href="clients.html" class="btn btn-ghost">← Back to Clients</a>
+          <button class="btn btn-lg" id="genPdf">Generate PDF</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../../libs/jspdf.umd.min.js"></script>
+  <script src="../../libs/jspdf.plugin.autotable.min.js"></script>
+  <script type="module">
+    import { guard, getQueryParam } from "../../shared/router.js";
+    import { CLIENTS, PACKAGES, findClient } from "../../shared/data.js";
+    import { renderAdminShell } from "../js/admin-layout.js";
+    import { buildInvoice } from "../../shared/pdf-generator.js";
+
+    if (guard()) {
+      renderAdminShell("invoice");
+
+      document.getElementById("invNo").value = "HJR" + new Date().toISOString().slice(5, 10).replace(/-/g, "") + Math.floor(10 + Math.random() * 90);
+      document.getElementById("date").value = new Date().toISOString().slice(0, 10);
+
+      const clientSel = document.getElementById("clientSel");
+      const clientDetails = document.getElementById("clientDetails");
+      clientSel.innerHTML = CLIENTS.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+      const preId = getQueryParam("clientId");
+      if (preId && findClient(preId)) clientSel.value = preId;
+      renderClientDetails();
+      clientSel.addEventListener("change", renderClientDetails);
+      function renderClientDetails() {
+        const c = findClient(clientSel.value);
+        clientDetails.textContent = c ? `${c.name} — ${c.address} — Phone: ${c.phone}` : "";
+      }
+
+      const rowsEl = document.getElementById("rows");
+      const pkgOptions = `<option value="">--</option>` + PACKAGES.map(p => `<option value="${p.id}">${p.name}</option>`).join("");
+      let rows = [];
+      function addRow(preset = {}) {
+        rows.push({ pkgId: "", pkgLabel: "", price: 0, unit: 1, qty: 1, ...preset });
+        render();
+      }
+      function rowJumlah(r) { return (+r.price || 0) * (+r.qty || 0); }
+      function render() {
+        rowsEl.innerHTML = rows.map((r, i) => `
+          <tr>
+            <td><select data-k="pkgId" data-i="${i}">${pkgOptions}</select></td>
+            <td><input type="number" step="0.01" data-k="price" data-i="${i}" value="${r.price || ""}"></td>
+            <td><input type="text" data-k="unit" data-i="${i}" value="${r.unit ?? ""}"></td>
+            <td><input type="number" data-k="qty" data-i="${i}" value="${r.qty || ""}"></td>
+            <td style="text-align:right;font-variant-numeric:tabular-nums">${fmt(rowJumlah(r))}</td>
+            <td class="col-del"><button class="row-del" data-del="${i}">✕</button></td>
+          </tr>
+        `).join("");
+        rows.forEach((r, i) => {
+          const sel = rowsEl.querySelector(`select[data-i="${i}"]`);
+          if (sel) sel.value = r.pkgId || "";
+        });
+        updateSummary();
+      }
+      function updateSummary() {
+        document.getElementById("sGrand").textContent = fmt(rows.reduce((s, r) => s + rowJumlah(r), 0));
+      }
+      rowsEl.addEventListener("input", e => {
+        const i = +e.target.dataset.i;
+        const k = e.target.dataset.k;
+        if (isNaN(i) || !k) return;
+        rows[i][k] = e.target.type === "number" ? parseFloat(e.target.value) || 0 : e.target.value;
+        if (k === "pkgId") {
+          const p = PACKAGES.find(x => x.id === +e.target.value);
+          if (p) { rows[i].price = p.price; rows[i].pkgLabel = p.name; render(); return; }
+        }
+        const row = e.target.closest("tr");
+        row.children[4].textContent = fmt(rowJumlah(rows[i]));
+        updateSummary();
+      });
+      rowsEl.addEventListener("click", e => {
+        const di = e.target.dataset.del;
+        if (di != null) { rows.splice(+di, 1); render(); }
+      });
+      document.getElementById("addRow").addEventListener("click", () => addRow());
+      addRow();
+
+      document.getElementById("genPdf").addEventListener("click", () => {
+        const invNo = document.getElementById("invNo").value;
+        const date = formatDate(document.getElementById("date").value);
+        const client = findClient(clientSel.value);
+        const payload = {
+          invoiceNo: invNo, date,
+          client: client || { name: "", address: "", phone: "" },
+          rows: rows.map(r => ({
+            pkg: PACKAGES.find(p => p.id === +r.pkgId)?.name || r.pkgLabel || "",
+            price: +r.price || 0,
+            unit: r.unit,
+            qty: +r.qty || 0,
+            jumlah: rowJumlah(r)
+          })),
+          total: rows.reduce((s, r) => s + rowJumlah(r), 0)
+        };
+        buildInvoice(payload);
+      });
+
+      function fmt(n) { return (+n || 0).toLocaleString("en-MY", {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+      function formatDate(iso) {
+        if (!iso) return "";
+        const [y, m, d] = iso.split("-");
+        return `${d}/${m}/${y}`;
+      }
+    }
+  </script>
+</body>
+</html>
