@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HIJIR Travel & Tours — Umrah, Haji & Ziarah Packages</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/desktop.css">
+</head>
+<body>
+
+  <!-- ============== TOP NAV ============== -->
+  <header class="topnav">
+    <div class="container">
+      <a href="index.html" class="brand">
+        <span class="img-placeholder" style="width:36px;height:36px;aspect-ratio:auto;border-radius:4px;font-size:0.7rem">LOGO</span>
+        HIJIR TRAVEL &amp; TOURS
+      </a>
+      <nav>
+        <a href="index.html" class="active">Home</a>
+        <a href="about.html">About</a>
+        <a href="packages.html">Packages</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html">Contact</a>
+        <button class="btn btn-outline" id="loginBtn" style="color:var(--brand);border-color:var(--brand)">Login</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ============== HERO ============== -->
+  <section class="hero text-center">
+    <div class="container">
+      <h1 id="heroTitle">Your Journey to Baitullah Starts Here</h1>
+      <p class="sub" id="heroSub">Umrah, Haji &amp; Ziarah Packages — Trusted Since 2024</p>
+      <div class="cta">
+        <a href="packages.html" class="btn btn-lg">View Packages</a>
+        <a href="contact.html" class="btn btn-outline btn-lg">Contact Us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== WHY CHOOSE ============== -->
+  <section class="section">
+    <div class="container text-center">
+      <h2>Why Choose HIJIR?</h2>
+      <p class="muted mb-3">Trusted by families across Malaysia for over a decade of pilgrimages.</p>
+      <div class="grid grid-4">
+        <div class="feature">
+          <div class="icon">🕋</div>
+          <h3>Licensed Operator</h3>
+          <p>Fully licensed Umrah operator with KPKLN approval.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">✈</div>
+          <h3>Direct Flights</h3>
+          <p>Direct flight packages with reputable carriers.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">🏨</div>
+          <h3>4–5 Star Hotels</h3>
+          <p>Hotels within walking distance of the Haram.</p>
+        </div>
+        <div class="feature">
+          <div class="icon">🤝</div>
+          <h3>Guided Tours</h3>
+          <p>Experienced mutawwif and group leaders on every trip.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== PACKAGES ============== -->
+  <section class="section" style="background:var(--bg-soft)">
+    <div class="container">
+      <div class="text-center mb-3">
+        <h2>Our Packages</h2>
+        <p class="muted">Choose your journey</p>
+      </div>
+      <div class="grid grid-3" id="pkgGrid"></div>
+      <div class="text-center mt-3">
+        <a href="packages.html" class="btn btn-outline">View All Packages →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== GALLERY STRIP ============== -->
+  <section class="section tight">
+    <div class="container">
+      <div class="flex-between mb-2">
+        <h2 class="mb-0">From Our Gallery</h2>
+        <a href="gallery.html">See More →</a>
+      </div>
+      <div class="gallery-strip" id="galleryStrip"></div>
+    </div>
+  </section>
+
+  <!-- ============== FOOTER ============== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div>
+        <h4 id="footCompany">HIJIR TRAVEL &amp; TOURS SDN. BHD.</h4>
+        <p id="footAddress"></p>
+        <p id="footPhone"></p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <p><a href="about.html" style="color:#c5d0d6">About</a></p>
+        <p><a href="packages.html" style="color:#c5d0d6">Packages</a></p>
+        <p><a href="gallery.html" style="color:#c5d0d6">Gallery</a></p>
+        <p><a href="contact.html" style="color:#c5d0d6">Contact</a></p>
+      </div>
+      <div class="copyright">© 2026 HIJIR Travel &amp; Tours Sdn. Bhd. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <!-- ============== LOGIN MODAL ============== -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal">
+      <button class="close-x" data-close>✕</button>
+      <h3>Admin Login</h3>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required autocomplete="current-password">
+        </div>
+        <div class="modal-error" id="loginErr"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+          <button type="submit" class="btn">Login</button>
+        </div>
+        <p class="modal-hint">Demo: admin@gmail.com / admin123</p>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { COMPANY, PACKAGES, GALLERY } from "../shared/data.js";
+    import { login, isLoggedIn } from "../shared/auth.js";
+
+    // Render hero from COMPANY config
+    document.getElementById("heroTitle").textContent = COMPANY.landing.heroTitle;
+    document.getElementById("heroSub").textContent = COMPANY.landing.heroSubtitle;
+
+    // Render footer company info
+    document.getElementById("footCompany").textContent = COMPANY.name;
+    document.getElementById("footAddress").textContent = COMPANY.address.join(" ");
+    document.getElementById("footPhone").textContent = "Phone: " + COMPANY.phone;
+
+    // Render packages (Umrah category only, first 3)
+    const umrahPkgs = PACKAGES.filter(p => p.category === "Umrah").slice(0, 3);
+    const pkgGrid = document.getElementById("pkgGrid");
+    pkgGrid.innerHTML = umrahPkgs.map(p => `
+      <div class="pkg-card">
+        <div class="pkg-img img-placeholder">${escapeHtml(p.name)}</div>
+        <div class="pkg-body">
+          <h3>${escapeHtml(p.name)}</h3>
+          <div class="pkg-cat">${escapeHtml(p.category)}</div>
+          <p class="pkg-desc">${escapeHtml(p.description)}</p>
+          <div class="pkg-price">RM ${p.price.toLocaleString("en-MY", {minimumFractionDigits: 2})} <small>/ pax</small></div>
+          <a href="contact.html?package=${encodeURIComponent(p.name)}" class="btn btn-block">Inquire Now</a>
+        </div>
+      </div>
+    `).join("");
+
+    // Render gallery strip (first 4)
+    const strip = document.getElementById("galleryStrip");
+    strip.innerHTML = GALLERY.slice(0, 4).map(g => `
+      <div class="img-placeholder">${escapeHtml(g.caption)}</div>
+    `).join("");
+
+    // Login modal wiring
+    const modal = document.getElementById("loginModal");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginForm = document.getElementById("loginForm");
+    const errBox = document.getElementById("loginErr");
+
+    loginBtn.addEventListener("click", () => {
+      if (isLoggedIn()) {
+        location.href = "admin/dashboard.html";
+        return;
+      }
+      modal.classList.add("open");
+    });
+    modal.addEventListener("click", e => {
+      if (e.target === modal || e.target.matches("[data-close]")) {
+        modal.classList.remove("open");
+        errBox.textContent = "";
+      }
+    });
+    loginForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const pw = document.getElementById("password").value;
+      const result = login(email, pw);
+      if (!result.ok) {
+        errBox.textContent = result.error;
+        return;
+      }
+      location.href = "admin/dashboard.html";
+    });
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+    }
+  </script>
+</body>
+</html>
