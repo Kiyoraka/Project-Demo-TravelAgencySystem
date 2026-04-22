@@ -11,7 +11,7 @@
   <div id="topbar"></div>
   <div class="container">
     <h2>Gallery</h2>
-    <button class="btn btn-block mb-2" id="uploadBtn">📤 Upload Image</button>
+    <button class="btn btn-block mb-2" id="uploadBtn"><i class="fa-solid fa-upload"></i> Upload Image</button>
     <p class="muted small mb-2">Demo only. Images should be dropped into assets/gallery/.</p>
     <div class="gallery-m" id="grid"></div>
   </div>
@@ -27,7 +27,7 @@
         grid.innerHTML = GALLERY.map((g, i) => `
           <div style="position:relative">
             <div>${g.caption}</div>
-            <button class="btn btn-sm btn-danger" style="position:absolute;top:4px;right:4px" data-del="${i}">🗑</button>
+            <button class="btn btn-sm btn-danger" style="position:absolute;top:4px;right:4px" data-del="${i}"><i class="fa-solid fa-trash"></i></button>
           </div>`).join("");
       }
       render();

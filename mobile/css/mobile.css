@@ -1,4 +1,6 @@
 /* HIJIR Travel & Tours — Mobile stylesheet (viewport < 768px) */
+
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css");
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {

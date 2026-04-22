@@ -10,11 +10,11 @@ export function renderAdminShell(activeKey) {
   const topbar = document.getElementById("adminTopbar");
 
   const items = [
-    { key: "dashboard", href: "dashboard.html",      label: "Dashboard",  icon: "📊" },
-    { key: "clients",   href: "clients.html",        label: "Clients",    icon: "👥" },
-    { key: "packages",  href: "packages.html",       label: "Packages",   icon: "📦" },
-    { key: "gallery",   href: "gallery-manage.html", label: "Gallery",    icon: "📸" },
-    { key: "settings",  href: "settings.html",       label: "Settings",   icon: "⚙" }
+    { key: "dashboard", href: "dashboard.html",      label: "Dashboard",  icon: "fa-chart-line" },
+    { key: "clients",   href: "clients.html",        label: "Clients",    icon: "fa-users" },
+    { key: "packages",  href: "packages.html",       label: "Packages",   icon: "fa-box" },
+    { key: "gallery",   href: "gallery-manage.html", label: "Gallery",    icon: "fa-image" },
+    { key: "settings",  href: "settings.html",       label: "Settings",   icon: "fa-gear" }
   ];
 
   sidebar.outerHTML = `
@@ -22,10 +22,10 @@ export function renderAdminShell(activeKey) {
       <div class="brand">HIJIR ADMIN</div>
       ${items.map(i => `
         <a href="${i.href}" class="${activeKey === i.key ? "active" : ""}">
-          <span>${i.icon}</span><span>${i.label}</span>
+          <i class="fa-solid ${i.icon}" style="width:18px;text-align:center"></i><span>${i.label}</span>
         </a>
       `).join("")}
-      <a href="#" class="logout" id="logoutLink"><span>🚪</span><span>Logout</span></a>
+      <a href="#" class="logout" id="logoutLink"><i class="fa-solid fa-right-from-bracket" style="width:18px;text-align:center"></i><span>Logout</span></a>
     </aside>
   `;
 

@@ -17,7 +17,7 @@
         <div class="panel">
           <div class="panel-header">
             <h3>Gallery Management</h3>
-            <button class="btn" id="uploadBtn">📤 Upload Image</button>
+            <button class="btn" id="uploadBtn"><i class="fa-solid fa-upload"></i> Upload Image</button>
           </div>
           <p class="muted small mb-3">Demo: upload shows a toast. In production this would save to server. Images should be dropped into <code>assets/gallery/</code>.</p>
           <div class="gallery-grid" id="grid"></div>
@@ -40,7 +40,7 @@
         grid.innerHTML = GALLERY.map((g, i) => `
           <div style="position:relative">
             <div class="img-placeholder">${g.caption}</div>
-            <button class="btn btn-sm btn-danger" style="position:absolute;top:8px;right:8px" data-del="${i}">🗑</button>
+            <button class="btn btn-sm btn-danger" style="position:absolute;top:8px;right:8px" data-del="${i}"><i class="fa-solid fa-trash"></i></button>
           </div>
         `).join("");
       }

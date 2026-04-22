@@ -51,12 +51,12 @@
         list.innerHTML = rows.length ? rows.map(c => `
           <div class="client-card-m">
             <div class="name">${esc(c.name)}</div>
-            <div class="meta">📞 ${esc(c.phone)}</div>
-            <div class="meta">📍 ${esc(c.address)}</div>
+            <div class="meta"><i class="fa-solid fa-phone"></i> ${esc(c.phone)}</div>
+            <div class="meta"><i class="fa-solid fa-location-dot"></i> ${esc(c.address)}</div>
             <div class="actions">
-              <a href="quotation.html?clientId=${c.id}" class="btn btn-sm">📄 Quote</a>
-              <a href="invoice.html?clientId=${c.id}" class="btn btn-sm">🧾 Invoice</a>
-              <a href="receipt.html?clientId=${c.id}" class="btn btn-sm btn-accent">✅ Receipt</a>
+              <a href="quotation.html?clientId=${c.id}" class="btn btn-sm"><i class="fa-solid fa-file-lines"></i> Quote</a>
+              <a href="invoice.html?clientId=${c.id}" class="btn btn-sm"><i class="fa-solid fa-file-invoice"></i> Invoice</a>
+              <a href="receipt.html?clientId=${c.id}" class="btn btn-sm btn-accent"><i class="fa-solid fa-circle-check"></i> Receipt</a>
             </div>
             <div class="actions-row2">
               <button class="btn btn-sm btn-ghost" data-edit="${c.id}" style="flex:1">Edit</button>

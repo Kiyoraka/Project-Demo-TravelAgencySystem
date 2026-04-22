@@ -1,6 +1,8 @@
 /* HIJIR Travel & Tours — Desktop stylesheet
    Single file serves both public and admin pages. */
 
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css");
+
 /* ---------- Reset & base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }

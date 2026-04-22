@@ -9,7 +9,7 @@ export function renderPublicLayout(activeKey) {
         <span class="logo-box">LOGO</span>
         HIJIR
       </a>
-      <button id="menuBtn" aria-label="Menu">☰</button>
+      <button id="menuBtn" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
     </header>
     <div class="drawer-backdrop" id="drawerBg"></div>
     <aside class="drawer" id="drawer">
@@ -24,14 +24,14 @@ export function renderPublicLayout(activeKey) {
   `;
   const bn = document.getElementById("bottomnav");
   const nav = [
-    { k: "home",     href: "index.html",    label: "Home",     icon: "🏠" },
-    { k: "packages", href: "packages.html", label: "Packages", icon: "📦" },
-    { k: "gallery",  href: "gallery.html",  label: "Gallery",  icon: "📸" },
-    { k: "about",    href: "about.html",    label: "About",    icon: "ℹ" }
+    { k: "home",     href: "index.html",    label: "Home",     icon: "fa-house" },
+    { k: "packages", href: "packages.html", label: "Packages", icon: "fa-box" },
+    { k: "gallery",  href: "gallery.html",  label: "Gallery",  icon: "fa-image" },
+    { k: "about",    href: "about.html",    label: "About",    icon: "fa-circle-info" }
   ];
   bn.outerHTML = `
     <nav class="bottom-nav">
-      ${nav.map(n => `<a href="${n.href}" class="${activeKey === n.k ? "active" : ""}"><span class="icon">${n.icon}</span><span>${n.label}</span></a>`).join("")}
+      ${nav.map(n => `<a href="${n.href}" class="${activeKey === n.k ? "active" : ""}"><i class="fa-solid ${n.icon} icon"></i><span>${n.label}</span></a>`).join("")}
     </nav>
   `;
 
@@ -61,15 +61,15 @@ export function renderAdminLayout(activeKey, title) {
   `;
   const bn = document.getElementById("bottomnav");
   const nav = [
-    { k: "dashboard", href: "dashboard.html",      label: "Home",     icon: "📊" },
-    { k: "clients",   href: "clients.html",        label: "Clients",  icon: "👥" },
-    { k: "packages",  href: "packages.html",       label: "Packages", icon: "📦" },
-    { k: "gallery",   href: "gallery-manage.html", label: "Gallery",  icon: "📸" },
-    { k: "settings",  href: "settings.html",       label: "Settings", icon: "⚙" }
+    { k: "dashboard", href: "dashboard.html",      label: "Home",     icon: "fa-chart-line" },
+    { k: "clients",   href: "clients.html",        label: "Clients",  icon: "fa-users" },
+    { k: "packages",  href: "packages.html",       label: "Packages", icon: "fa-box" },
+    { k: "gallery",   href: "gallery-manage.html", label: "Gallery",  icon: "fa-image" },
+    { k: "settings",  href: "settings.html",       label: "Settings", icon: "fa-gear" }
   ];
   bn.outerHTML = `
     <nav class="bottom-nav admin">
-      ${nav.map(n => `<a href="${n.href}" class="${activeKey === n.k ? "active" : ""}"><span class="icon">${n.icon}</span><span>${n.label}</span></a>`).join("")}
+      ${nav.map(n => `<a href="${n.href}" class="${activeKey === n.k ? "active" : ""}"><i class="fa-solid ${n.icon} icon"></i><span>${n.label}</span></a>`).join("")}
     </nav>
   `;
   document.getElementById("logoutBtn").addEventListener("click", () => {
