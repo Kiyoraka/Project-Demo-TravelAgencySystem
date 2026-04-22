@@ -105,6 +105,9 @@ p { margin: 0 0 1em; }
 .topnav nav a.active::after {
   content: ""; position: absolute; left: 0; right: 0; bottom: -6px; height: 2px; background: var(--brand);
 }
+/* Button-styled links inside the nav (e.g., Login) should keep .btn padding, not the nav's 6px 0 */
+.topnav nav a.btn { padding: 10px 20px; }
+.topnav nav a.btn.active::after { display: none; }
 
 /* ---------- Hero ---------- */
 .hero {
